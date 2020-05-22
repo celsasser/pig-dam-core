@@ -1,0 +1,49 @@
+{
+    "author": "Curt Elsasser",
+    "dependencies": {
+        "lodash": "4.17.15",
+        "shortid": "2.2.15"
+    },
+    "description": "Library that should be included in every Pig DAM project we build",
+    "devDependencies": {
+        "@types/jest": "25.2.3",
+        "@types/lodash": "4.14.152",
+        "@types/node": "12.12.6",
+        "@types/shortid": "0.0.29",
+        "jest": "26.0.1",
+        "jest-junit": "10.0.0",
+        "ts-jest": "26.0.0",
+        "tslint": "6.1.2",
+        "typescript": "3.9.3"
+    },
+    "homepage": "https://github.com/celsasser/pig-dam-core.git",
+    "keywords": [
+        "core",
+        "dam",
+        "lib",
+        "pig"
+    ],
+    "license": "Apache-2.0",
+    "main": "dist/index",
+    "name": "pig-dam-core",
+    "readmeFilename": "README.md",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/celsasser/pig-dam-core.git"
+    },
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "coverage": "npm run test:unit -- --coverage",
+        "deploy": "npm run test && npm publish",
+        "jest:reset": "jest --clearCache && rm -rf ./dist",
+        "lint": "npm run lint:src && npm run lint:res",
+        "lint:fix": "npm run lint:src -- --fix && npm run lint:res -- --fix",
+        "lint:res": "tslint --config tslint-res.json \"src/**/*.json\" \"test/**/*.json\" ",
+        "lint:src": "tslint --config tslint-src.json \"src/**/*.ts\" \"test/**/*.ts\" ",
+        "rebuild": "rm -rf ./dist && npm run build",
+        "test": "npm run test:unit",
+        "test:unit": "jest ./test/unit"
+    },
+    "types": "dist/index",
+    "version": "0.0.1"
+}

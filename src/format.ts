@@ -6,8 +6,8 @@
  */
 
 
-import * as diagnostics from "./diagnostics";
 import {PigError} from "./error";
+import {getStack, groomStack} from "./stack";
 import * as type from "./type";
 
 /**
@@ -31,6 +31,8 @@ export function errorToString(error: PigError|Error|string, {
 	if(typeof (error) === "string") {
 		text = `${text}${error}`;
 	} else {
+		// we have the option of including the module but I think that's excessive.
+		// if that amount of info is desired then we will asume that they will include the stack.
 		if(source === false) {
 			text = `${text}${error.message}`;
 		} else if("instance" in error && "method" in error) {
@@ -50,7 +52,7 @@ export function errorToString(error: PigError|Error|string, {
 			}
 		}
 		if(stack) {
-			text = `${text}\n${diagnostics.groomStack(error.stack, {popCount: 1})}`;
+			text = `${text}\n${groomStack(error.stack, {popCount: 1})}`;
 		}
 	}
 	return text;
@@ -79,7 +81,7 @@ export function messageToString(message?: string|Error|(() => string), {
 				: dfault;
 		}
 		if(stack) {
-			text += `\n${diagnostics.getStack({popCount: 1})}`;
+			text += `\n${getStack({popCount: 1})}`;
 		}
 		return text;
 	}

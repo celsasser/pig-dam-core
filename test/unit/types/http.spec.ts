@@ -4,11 +4,7 @@
  * @license MIT (see project's LICENSE file)
  */
 
-import {
-	HttpMethod,
-	HttpStatusCode,
-	HttpStatusText
-} from "../../../src/types";
+import {HttpMethod, HttpStatusCode, httpStatusCodeToText} from "../../../src/types";
 
 describe("http", function() {
 	describe("HttpMethod", function() {
@@ -29,9 +25,9 @@ describe("http", function() {
 		});
 	});
 
-	describe("HttpStatusText", function() {
+	describe("httpStatusCodeToText", function() {
 		it("should encode the proper text for enum values", function() {
-			expect(HttpStatusText[HttpStatusCode.OK]).toEqual("OK");
+			expect(httpStatusCodeToText(HttpStatusCode.OK)).toEqual("OK");
 		});
 	});
 });

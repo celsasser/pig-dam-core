@@ -6,11 +6,8 @@
  */
 
 import * as _ from "lodash";
-import {
-	getHttpStatusText,
-	HttpStatusCode
-} from "./types";
-
+import {findModuleRoot} from "./module";
+import {HttpStatusCode, httpStatusCodeToText} from "./types";
 
 /**
  * Custom Error type that supports some "smart" constructors. And some property annotation support
@@ -23,17 +20,15 @@ export class PigError extends Error {
 	public readonly statusCode?: HttpStatusCode|number;
 
 	/**
-	 * General purpose pig error that hold all of our secrets.  He is designed to stash information
-	 * related to the error so that we capture and report relevant info.  You may specify a number
-	 * of predefined params and include additional ones.  You must supply something that constitutes
-	 * a "message".  This can come from "message", "error", "code" or "instance"...though instance
-	 * probably does not make for a very good message.
+	 * General purpose pig error that hold all of our secrets. He is designed to stash information related to the
+	 * error so that we capture and report relevant info. You may specify a number of predefined params and include
+	 * additional ones. You must supply something that constitutes a "message". Be reasonable and we will find something...
 	 * @param details - details in addition to the principle error or message
 	 * @param error - error that will be promoted to "message" or "details" if they are not specified.
 	 * @param instance - instance of object in which the error occurred
 	 * @param message
 	 * @param method - calling method
-	 * @param statusCode - http code to associate with error. See <link>./enum/http.js</link> for enums
+	 * @param statusCode - http code to associate with error.
 	 * @param properties - additional properties that you want captured and logged.
 	 */
 	constructor({details, error, instance, message, method, statusCode, ...properties}: {
@@ -41,10 +36,14 @@ export class PigError extends Error {
 		error?: PigError|Error|string,
 		instance?: object|string,
 		message?: string,
-		method?: string,
+		method?: string|Function,
 		statusCode?: HttpStatusCode|number
 	}) {
-		function getMostImportant(preferredProperty: string): any {
+		const leftovers = Object.assign({}, arguments[0]);
+		/**
+		 * Attempts to get the preferred property but if not available then returns the next most "important"
+		 */
+		function getPreferred(preferredProperty: string): string {
 			let result;
 			if(leftovers[preferredProperty]) {
 				result = leftovers[preferredProperty];
@@ -53,32 +52,67 @@ export class PigError extends Error {
 				result = leftovers.error.message;
 				delete leftovers.error;
 			} else if(leftovers.statusCode) {
-				result = `${getHttpStatusText(leftovers.statusCode)} (${leftovers.statusCode})`;
+				result = `${httpStatusCodeToText(leftovers.statusCode)} (${leftovers.statusCode})`;
 				delete leftovers.statusCode;
 			}
 			return result;
 		}
 
-		const leftovers = Object.assign({}, arguments[0]);
-		super(message || getMostImportant("message"));
+		// preprocess the data
 		if(error) {
 			if(!_.isError(error)) {
 				error = new Error(error);
 			}
-			// so that we can trace things to the true origin we steal his stack. There may be times at which we don't want to do this?
-			this.stack = error.stack;
 			// steal goodies that we want to inherit
 			if((error as PigError).statusCode) {
 				statusCode = (error as PigError).statusCode;
 			}
 		}
+
+		super(getPreferred("message"));
+
+		// post process the data
+		if(error) {
+			// so that we can trace things to the true origin we steal his stack. There may be times at which we don't want to do this?
+			this.stack = (error as Error).stack;
+		}
+
 		_.merge(this, _.omitBy({
-			details: getMostImportant("details"),
+			details: getPreferred("details"),
 			error,
 			instance,
-			method,
+			method: (typeof method === "function")
+				? method.name
+				: method,
+			module: this.stackToModule(),
 			statusCode,
 			...properties
 		}, _.isUndefined));
+	}
+
+	/********************
+	 * Private Interface
+	 ********************/
+	/**
+	 * Examines the stack and tries to figure out the module that raised the error
+	 */
+	private stackToModule(): string|undefined {
+		/**
+		 * An error is going to look something like this
+		 *
+		 * Error: message
+		 *	at Object.<anonymous> (/Users/curtis/Develop/projects/node/pig/dam/core/test/unit/format.spec.ts:29:18)
+		 *  ...
+		 *
+		 *  We are going to look for and parse the first call stack item (lines[1])
+		 */
+		try {
+			const lines = (this.stack as string).split("\n");
+			const module = (lines[1].match(/\((.+):\d+:\d+\)/) as RegExpMatchArray)[1];
+			const root = findModuleRoot(module);
+			return `.${module.substr(root.length)}`;
+		} catch(error) {
+			return undefined;
+		}
 	}
 }

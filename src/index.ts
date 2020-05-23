@@ -11,7 +11,6 @@ import * as _urn from "./urn";
 
 export * from "./compare";
 export * from "./date";
-export * from "./diagnostics";
 export * from "./error";
 export * from "./format";
 export * from "./log/base";
@@ -21,6 +20,7 @@ export * from "./module";
  * We want mutable and immutable to be accessible directly
  */
 export * from "./mutation";
+export * from "./stack";
 export * from "./test/filter";
 export * from "./types";
 

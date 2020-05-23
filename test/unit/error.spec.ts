@@ -17,7 +17,7 @@ describe("error", function() {
 
 		describe("constructor", function() {
 			it("should populate all supported params properly", function() {
-				const instance=new PigError({
+				const instance = new PigError({
 					details: "details",
 					error: new Error("error"),
 					instance: "instance",
@@ -30,17 +30,19 @@ describe("error", function() {
 					error: new Error("error"),
 					instance: "instance",
 					message: "message",
+					module: "./test/unit/error.spec.ts",
 					method: "method",
 					statusCode: 100
 				});
 			});
 
 			it("should properly derive 'message' from 'error' param", function() {
-				const error=new Error("message"),
-					instance=new PigError({error});
+				const error = new Error("message"),
+					instance = new PigError({error});
 				expect(_toPOJO(instance)).toEqual({
+					error,
 					message: "message",
-					error
+					module: "./test/unit/error.spec.ts"
 				});
 			});
 
@@ -51,22 +53,38 @@ describe("error", function() {
 				}))).toEqual({
 					details: "details",
 					error: new Error("details"),
-					message: "message"
+					message: "message",
+					module: "./test/unit/error.spec.ts"
 				});
+
 				expect(_toPOJO(new PigError({
 					message: "message",
 					statusCode: 100
 				}))).toEqual({
 					details: "Continue (100)",
 					message: "message",
+					module: "./test/unit/error.spec.ts",
 					statusCode: 100
 				});
 			});
 
+			it("should pull name from a function method", function() {
+
+				const instance = new PigError({
+					message: "message",
+					method: function dummy() {}
+				});
+				expect(_toPOJO(instance)).toEqual({
+					message: "message",
+					method: "dummy",
+					module: "./test/unit/error.spec.ts"
+				});
+			});
+
 			it("should inherit the 'error' param's stack", function() {
-				const error=new Error();
-				error.stack="stack";
-				const instance=new PigError({error});
+				const error = new Error();
+				error.stack = "stack";
+				const instance = new PigError({error});
 				expect(instance.stack).toEqual("stack");
 			});
 		});

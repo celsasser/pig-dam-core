@@ -16,6 +16,7 @@ export * from "./error";
 export * from "./format";
 export * from "./log/base";
 export * from "./log/console";
+export * from "./module";
 /**
  * We want mutable and immutable to be accessible directly
  */

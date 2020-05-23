@@ -7,6 +7,18 @@
 import {LogConsole, Severity} from "../../src";
 
 describe("log.LogBase", function() {
+	const defaults = {
+		DATE: new Date("2020-01-01T00:00:00.000Z")
+	}
+
+	beforeEach(function() {
+		global.console.debug = jest.fn();
+		global.console.log = jest.fn();
+		global.console.warn = jest.fn();
+		global.console.error = jest.fn();
+		global.Date.now = jest.fn().mockReturnValue(defaults.DATE);
+	});
+
 	describe("constructor", function() {
 		it("should properly create the instance", function() {
 			const log = new LogConsole({
@@ -23,156 +35,57 @@ describe("log.LogBase", function() {
 	});
 
 	[
-		["debug", Severity.DEBUG],
-		["error", Severity.ERROR],
-		["fatal", Severity.FATAL],
-		["info", Severity.INFO],
-		["warn", Severity.WARN]
-	].forEach(([method, _severity]) => {
-		describe(method, function() {
-			it(`should properly call _processEntry with severity="${_severity}" and proper param values`, function() {
+		{logMethod: Severity.DEBUG, consoleMethod: "debug"},
+		{logMethod: Severity.INFO, consoleMethod: "log"},
+		{logMethod: Severity.WARN, consoleMethod: "warn"},
+		{logMethod: Severity.ERROR, consoleMethod: "error"},
+		{logMethod: Severity.FATAL, consoleMethod: "error"}
+	].forEach(({logMethod, consoleMethod}) => {
+		describe(logMethod, function() {
+			it(`should properly log "${logMethod}" to console.${consoleMethod}`, function() {
 				const log = new LogConsole({
 					applicationId: "applicationId",
 					environmentId: "environmentId"
 				});
-				proxy.stub(log, "_processEntry", function(message, {
-					metadata,
-					moduleId,
-					severity,
-					traceId
-				}) {
-					expect(message).toEqual("message");
-					expect(metadata).toEqual("metadata");
-					expect(moduleId).toEqual("moduleId");
-					expect(severity).toEqual(_severity);
-					expect(traceId).toEqual("traceId");
-				});
-				log[method]("message", {
-					metadata: "metadata",
+				log[logMethod]("message", {
+					metadata: {},
 					moduleId: "moduleId",
 					traceId: "traceId"
 				});
-				expect(log._processEntry.callCount).toEqual(1);
+				// @ts-ignore
+				expect(console[consoleMethod]).toBeCalledWith("message", {
+					"applicationId": "applicationId",
+					"environmentId": "environmentId",
+					"metadata": {},
+					"moduleId": "moduleId",
+					"severity": logMethod,
+					"timestamp": defaults.DATE,
+					"traceId": "traceId"
+				});
 			});
 		});
 	});
 
-	describe("_processEntry", function() {
-		[
-			Severity.DEBUG,
-			Severity.ERROR,
-			Severity.FATAL,
-			Severity.INFO,
-			Severity.WARN
-		].forEach(severity => {
-			it(`should process ${severity} if no threshold is specified and call _processEntry with proper arguments`, function() {
+	[
+		{logMethod: Severity.DEBUG, consoleMethod: "debug", logged: false},
+		{logMethod: Severity.INFO, consoleMethod: "log", logged: true},
+		{logMethod: Severity.WARN, consoleMethod: "warn", logged: true},
+		{logMethod: Severity.ERROR, consoleMethod: "error", logged: true}
+	].forEach(({logMethod, consoleMethod, logged}) => {
+		describe(logMethod, function() {
+			it(`should properly filter "${logMethod}" to console.${consoleMethod}`, function() {
 				const log = new LogConsole({
 					applicationId: "applicationId",
-					environmentId: "environmentId"
+					environmentId: "environmentId",
+					threshold: Severity.INFO
 				});
-				const timestamp = new Date("2000-01-01T00:00:00.000Z");
-				proxy.stubDate(timestamp);
-				proxy.stub(log, "_logEntry", function(message, metadata) {
-					expect(message).toEqual("message");
-					expect(metadata).toEqual({
-						applicationId: "applicationId",
-						environmentId: "environmentId",
-						moduleId: "moduleId",
-						severity,
-						timestamp,
-						traceId: "traceId"
-					});
-				});
-				log._processEntry("message", {
+				log[logMethod]("message", {
+					metadata: {},
 					moduleId: "moduleId",
-					severity,
 					traceId: "traceId"
 				});
-				expect(log._logEntry.callCount).toEqual(1);
-			});
-		});
-
-		[
-			[Severity.DEBUG, false],
-			[Severity.INFO, false],
-			[Severity.WARN, true],
-			[Severity.ERROR, true],
-			[Severity.FATAL, true]
-		].forEach(([_severity, process]) => {
-			it(`should properly ${process ? "process" : "bypass"} if severity=${_severity} and threshold=${Severity.WARN}`, function() {
-				const log = new LogConsole({
-					applicationId: "applicationId",
-					environmentId: "environmentId",
-					threshold: Severity.WARN
-				});
-				proxy.spy(log, "_logEntry");
-				log._processEntry("message", {
-					moduleId: "moduleId",
-					severity: _severity
-				});
-				expect(log._logEntry.callCount).toEqual((process) ? 1 : 0);
-			});
-		});
-
-		it("should sort metadata properties if asked to", function() {
-			const log = new LogConsole({
-				applicationId: "applicationId",
-				environmentId: "environmentId",
-				sortMetadata: true
-			});
-			const timestamp = new Date("2000-01-01T00:00:00.000Z");
-			proxy.stubDate(timestamp);
-			proxy.stub(log, "_logEntry", function(message, metadata) {
-				expect(metadata).toEqual({
-					applicationId: "applicationId",
-					environmentId: "environmentId",
-					metadata: {
-						"a": 1,
-						"b": 2
-					},
-					moduleId: "moduleId",
-					severity: "severity",
-					timestamp
-				});
-			});
-			log._processEntry("message", {
-				metadata: {
-					b: 2,
-					a: 1
-				},
-				moduleId: "moduleId",
-				severity: "severity"
-			});
-		});
-
-		it("should not sort metadata properties if not asked to", function() {
-			const log = new LogConsole({
-				applicationId: "applicationId",
-				environmentId: "environmentId",
-				sortMetadata: false
-			});
-			const timestamp = new Date("2000-01-01T00:00:00.000Z");
-			proxy.stubDate(timestamp);
-			proxy.stub(log, "_logEntry", function(message, metadata) {
-				expect(metadata).toEqual({
-					applicationId: "applicationId",
-					environmentId: "environmentId",
-					metadata: {
-						"b": 2,
-						"a": 1
-					},
-					moduleId: "moduleId",
-					severity: "severity",
-					timestamp
-				});
-			});
-			log._processEntry("message", {
-				metadata: {
-					b: 2,
-					a: 1
-				},
-				moduleId: "moduleId",
-				severity: "severity"
+				// @ts-ignore
+				expect(console[consoleMethod]).toBeCalledTimes(logged ? 1 : 0);
 			});
 		});
 	});

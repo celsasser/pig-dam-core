@@ -11,10 +11,17 @@ import {LogBase} from "./base";
  * Logs to the console
  */
 export class LogConsole extends LogBase {
-	protected _logEntry(message: string, severity: Severity, metadata: {[p: string]: any}) {
-		const method = (severity === Severity.FATAL)
-			? Severity.ERROR
-			: severity;
-		console[method](message, metadata);
+	protected _logEntry(message: string, severity: Severity, metadata: {[p: string]: any}): void {
+		switch(severity) {
+			case Severity.INFO: {
+				return console.log(message, metadata);
+			}
+			case Severity.FATAL: {
+				return console.error(message, metadata);
+			}
+			default: {
+				return console[severity](message, metadata);
+			}
+		}
 	}
 }

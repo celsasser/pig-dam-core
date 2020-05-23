@@ -20,9 +20,7 @@ export * from "./log/console";
  * We want mutable and immutable to be accessible directly
  */
 export * from "./mutation";
-/**
- * We will assume global scope (to the core) for enums
- */
+export * from "./test/filter";
 export * from "./types";
 
 export const promise = _promise;

@@ -143,7 +143,7 @@ export abstract class LogBase {
 					: metadata,
 				moduleId,
 				severity,
-				timestamp: new Date(),
+				timestamp: Date.now(),
 				traceId
 			}, _.isUndefined));
 		}

@@ -5,8 +5,8 @@
         <option name="USE_TAB_CHARACTER" value="true" />
       </value>
     </option>
-    <option name="RIGHT_MARGIN" value="150" />
-    <option name="SOFT_MARGINS" value="150" />
+    <option name="RIGHT_MARGIN" value="90" />
+    <option name="SOFT_MARGINS" value="140" />
     <HTMLCodeStyleSettings>
       <option name="HTML_ALIGN_ATTRIBUTES" value="false" />
     </HTMLCodeStyleSettings>

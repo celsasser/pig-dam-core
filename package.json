@@ -34,7 +34,7 @@
     "scripts": {
         "build": "tsc -p tsconfig.json",
         "coverage": "npm run test:unit -- --coverage",
-        "deploy": "npm run test && npm publish",
+        "deploy": "npm run rebuild && npm run test && npm publish",
         "jest:reset": "jest --clearCache && rm -rf ./dist",
         "lint": "npm run lint:src && npm run lint:res",
         "lint:fix": "npm run lint:src -- --fix && npm run lint:res -- --fix",

@@ -5,7 +5,6 @@
 *~
 *.tmp
 *.zip
-/log
 
 # eliminate .idea files that we don't use or that we simply don't want to share
 .idea/jsLinters
@@ -13,7 +12,14 @@
 .idea/workspace.xml
 .idea/jsLibraryMappings.xml
 
-# npm modules that will be built dynamically
-coverage
-dist
-node_modules
+# directories we don't want in our repo
+coverage/
+dist/
+ignore/
+log/
+node_modules/
+reports/
+tmp/
+
+# odds and ends we don't need in our repo
+package-lock.json

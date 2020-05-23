@@ -16,7 +16,7 @@ module.exports={
 			"statements": 100,
 		}
 	},
-	preset: 'ts-jest',
+	preset: "ts-jest",
 	reporters: [
 		"default",
 		[
@@ -26,5 +26,5 @@ module.exports={
 			}
 		],
 	],
-	testEnvironment: 'node',
+	testEnvironment: "node",
 };

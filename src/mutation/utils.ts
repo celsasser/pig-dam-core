@@ -4,10 +4,27 @@
  * @license MIT (see project's LICENSE file)
  */
 
-import {
-	findIndex,
-	ListIterateeCustom
-} from "lodash";
+import {findIndex, ListIterateeCustom} from "lodash";
+import {PigError} from "../error";
+import {ArrayInsertLocation} from "../types/mutation";
+
+/**
+ * Finds the insertion index
+ * @throws {Error}
+ */
+export function findInsertLocation<T>(array: T[], location: ArrayInsertLocation<T>): number {
+	if(location.index !== undefined) {
+		return location.index;
+	} else if(location.after !== undefined) {
+		return array.indexOf(location.after) + 1;
+	} else if(location.before !== undefined) {
+		return array.indexOf(location.before);
+	}
+	throw new PigError({
+		message: "no insertion information",
+		method: findInsertLocation
+	});
+}
 
 /**
  * Find index with given criteria
@@ -27,7 +44,10 @@ export function searchCriteriaToIndex<T>(array: T[], {element, index, predicate}
 	} else if(predicate !== undefined) {
 		index = findIndex(array, predicate);
 	} else if(index === undefined) {
-		throw new Error("essential search criteria is missing");
+		throw new PigError({
+			message: "essential search criteria is missing",
+			method: searchCriteriaToIndex
+		});
 	}
 	return index;
 }

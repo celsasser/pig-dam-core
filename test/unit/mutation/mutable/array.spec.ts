@@ -4,7 +4,7 @@
  * @license MIT (see project's LICENSE file)
  */
 
-import {mutable} from "../../../../src/mutation";
+import {immutable, mutable} from "../../../../src/mutation";
 
 
 describe("mutation.mutable.array", function() {
@@ -19,10 +19,28 @@ describe("mutation.mutable.array", function() {
 			expect(original).toEqual([1, 2]);
 		});
 
-		it("should insert an element to an existing array", function() {
-			const original=[1, 3];
-			mutable.array.add(original, 2, 1);
-			expect(original).toEqual([1, 2, 3]);
+		it("should insert an element to an existing array by index", function() {
+			const original = [1, 3];
+			const result = immutable.array.add(original, 2, {
+				index: 1
+			});
+			expect(result).toEqual([1, 2, 3]);
+		});
+
+		it("should insert an element after an element", function() {
+			const original = [1, 3];
+			const result = immutable.array.add(original, 2, {
+				after: 1
+			});
+			expect(result).toEqual([1, 2, 3]);
+		});
+
+		it("should insert an element before an element", function() {
+			const original = [1, 3];
+			const result = immutable.array.add(original, 2, {
+				before: 3
+			});
+			expect(result).toEqual([1, 2, 3]);
 		});
 	});
 
@@ -37,10 +55,28 @@ describe("mutation.mutable.array", function() {
 			expect(original).toEqual([1, 2, 3]);
 		});
 
-		it("should insert elements into an existing array", function() {
-			const original=[1, 4];
-			mutable.array.concat(original, [2, 3], 1);
-			expect(original).toEqual([1, 2, 3, 4]);
+		it("should insert elements into an existing array by index", function() {
+			const original = [1, 4];
+			const result = immutable.array.concat(original, [2, 3], {
+				index: 1
+			});
+			expect(result).toEqual([1, 2, 3, 4]);
+		});
+
+		it("should insert elements after an element", function() {
+			const original = [1, 4];
+			const result = immutable.array.concat(original, [2, 3], {
+				after: 1
+			});
+			expect(result).toEqual([1, 2, 3, 4]);
+		});
+
+		it("should insert elements before an element", function() {
+			const original = [1, 4];
+			const result = immutable.array.concat(original, [2, 3], {
+				before: 4
+			});
+			expect(result).toEqual([1, 2, 3, 4]);
 		});
 	});
 

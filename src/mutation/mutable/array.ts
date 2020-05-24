@@ -6,23 +6,26 @@
 
 import * as _ from "lodash";
 import {compareAny} from "../../compare";
-import {searchCriteriaToIndex} from "../utils";
+import {ArrayInsertLocation} from "../../types/mutation";
+import {findInsertLocation, searchCriteriaToIndex} from "../utils";
 
 
 /**
  * Adds element.
  * @param array - may be null provided that this is an "dateAdd" operation
  * @param element - element to be inserted
- * @param index - optional index
+ * @param location - optional location information
+ * @throws {Error}
  */
-export function add<T>(array: T[], element: T, index?: number): T[] {
+export function add<T>(array: T[], element: T, location?: ArrayInsertLocation<T>): T[] {
 	if(!array) {
 		array = [];
 	}
-	if(index === undefined) {
-		array.push(element);
+	if(location) {
+		const index = findInsertLocation(array, location);
+		array.splice(index, 0, element);
 	} else {
-		return array.splice(index, 0, element);
+		array.push(element);
 	}
 	return array;
 }
@@ -31,17 +34,19 @@ export function add<T>(array: T[], element: T, index?: number): T[] {
  * Concatenates <param>array</param> and <param>elements</param>
  * @param array - may be null provided that there is no <param>index</param>
  * @param elements - elements be added or inserted
- * @param index - optional index
+ * @param location - optional location information
+ * @throws {Error}
  */
-export function concat<T>(array: T[], elements: T[], index?: number): T[] {
+export function concat<T>(array: T[], elements: T[], location?: ArrayInsertLocation<T>): T[] {
 	if(!array) {
 		array = [];
 	}
-	if(index === undefined) {
+	if(location === undefined) {
 		_.each(elements, function(element) {
 			array.push(element);
 		});
 	} else {
+		const index = findInsertLocation(array, location);
 		_.each(elements, function(element, offset) {
 			return array.splice(index + offset, 0, element);
 		});

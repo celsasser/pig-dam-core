@@ -35,6 +35,7 @@
         "build": "tsc -p tsconfig.json",
         "coverage": "npm run test:unit -- --coverage",
         "jest:reset": "jest --clearCache && rm -rf ./dist",
+        "link:build": "npm run rebuild && npm link",
         "lint": "npm run lint:src && npm run lint:res",
         "lint:fix": "npm run lint:src -- --fix && npm run lint:res -- --fix",
         "lint:res": "tslint --config tslint-res.json \"src/**/*.json\" \"test/**/*.json\" ",
@@ -45,5 +46,5 @@
         "test:unit": "jest ./test/unit"
     },
     "types": "dist/index",
-    "version": "0.0.2"
+    "version": "0.0.3"
 }

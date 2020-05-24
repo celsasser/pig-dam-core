@@ -6,7 +6,6 @@
 
 import * as _promise from "./promise";
 import * as _template from "./template";
-import * as _type from "./type";
 
 export * from "./compare";
 export * from "./date";
@@ -21,9 +20,9 @@ export * from "./module";
 export * from "./mutation";
 export * from "./stack";
 export * from "./test/filter";
+export * from "./type";
 export * from "./types";
 export * from "./urn";
 
 export const promise = _promise;
 export const template = _template;
-export const type = _type;

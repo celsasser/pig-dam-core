@@ -8,7 +8,6 @@
 
 import {PigError} from "./error";
 import {getStack, groomStack} from "./stack";
-import * as type from "./type";
 
 /**
  * Gets text suitable for different purposes. Caller may control the results with
@@ -36,9 +35,9 @@ export function errorToString(error: PigError|Error|string, {
 		if(source === false) {
 			text = `${text}${error.message}`;
 		} else if("instance" in error && "method" in error) {
-			text = `${text}${type.name(error.instance)}.${error.method}(): ${error.message}`;
+			text = `${text}${error.instance}.${error.method}(): ${error.message}`;
 		} else if("instance" in error) {
-			text = `${text}${type.name(error.instance)}: ${error.message}`;
+			text = `${text}${error.instance}: ${error.message}`;
 		} else if("method" in error) {
 			text = `${text}${error.method}(): ${error.message}`;
 		} else {

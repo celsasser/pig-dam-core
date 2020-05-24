@@ -7,6 +7,7 @@
 
 import * as _ from "lodash";
 import {getModulesRelativePath} from "./module";
+import {getTypeName} from "./type";
 import {HttpStatusCode, httpStatusCodeToText} from "./types";
 
 /**
@@ -15,8 +16,9 @@ import {HttpStatusCode, httpStatusCodeToText} from "./types";
 export class PigError extends Error {
 	public readonly details?: string;
 	public readonly error?: Error;
-	public readonly instance?: {[index: string]: any}|string;
+	public readonly instance?: string;
 	public readonly method?: string;
+	public readonly module?: string;
 	public readonly statusCode?: HttpStatusCode|number;
 
 	/**
@@ -36,7 +38,7 @@ export class PigError extends Error {
 	constructor({details, error, instance, message, method, module, statusCode, ...properties}: {
 		details?: string,
 		error?: PigError|Error|string,
-		instance?: object|string,
+		instance?: string|object,
 		message?: string,
 		method?: string|Function,
 		module?: string,
@@ -68,6 +70,9 @@ export class PigError extends Error {
 		}
 
 		// preprocess the data
+		if(instance && typeof instance !== "string") {
+			instance = getTypeName(instance);
+		}
 		if(error) {
 			if(!_.isError(error)) {
 				error = new Error(error);

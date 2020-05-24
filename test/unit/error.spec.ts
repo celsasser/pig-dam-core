@@ -36,6 +36,16 @@ describe("error", function() {
 				});
 			});
 
+			it("should convert a newable instance to a string", function() {
+				const instance = new PigError({
+					instance: new Date()
+				});
+				expect(_toPOJO(instance)).toEqual({
+					instance: "Date",
+					module: "./test/unit/error.spec.ts",
+				});
+			});
+
 			it("should properly derive 'message' from 'error' param", function() {
 				const error = new Error("message"),
 					instance = new PigError({error});
@@ -69,7 +79,6 @@ describe("error", function() {
 			});
 
 			it("should pull name from a function method", function() {
-
 				const instance = new PigError({
 					message: "message",
 					method: function dummy() {}

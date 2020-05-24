@@ -12,7 +12,7 @@ import * as shortid from "shortid";
  *  - path: "urn:<path>:<nss>"
  *  - parts: "urn:<path[0]>:<path[2]>...<path[n-1]>:<nss>"
  */
-export function create({path,
+export function createUrn({path,
 	nss = shortid.generate()
 }: {
 	nss?: string,
@@ -30,7 +30,7 @@ export function create({path,
  *    result will be an object of values mapped to these part names.
  * @throws {Error}
  */
-export function parse(urn: string, parts?: string[]): {
+export function parseUrn(urn: string, parts?: string[]): {
 	parts: string[]|{[index: string]: string},
 	nss: string
 } {

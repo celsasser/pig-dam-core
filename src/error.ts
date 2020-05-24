@@ -6,7 +6,7 @@
  */
 
 import * as _ from "lodash";
-import {findModuleRoot} from "./module";
+import {getModulesRelativePath} from "./module";
 import {HttpStatusCode, httpStatusCodeToText} from "./types";
 
 /**
@@ -28,22 +28,31 @@ export class PigError extends Error {
 	 * @param instance - instance of object in which the error occurred
 	 * @param message
 	 * @param method - calling method
+	 * @param module - the module from which the error was thrown. We will pull it from the stack if not included.
+	 *    If included then most likely you will want to assign it from `__filename` or `__dirname`
 	 * @param statusCode - http code to associate with error.
 	 * @param properties - additional properties that you want captured and logged.
 	 */
-	constructor({details, error, instance, message, method, statusCode, ...properties}: {
+	constructor({details, error, instance, message, method, module, statusCode, ...properties}: {
 		details?: string,
 		error?: PigError|Error|string,
 		instance?: object|string,
 		message?: string,
 		method?: string|Function,
+		module?: string,
 		statusCode?: HttpStatusCode|number
 	}) {
+		/**
+		 * A more preferable stack if we can find one. So that we can trace things to the true origin we
+		 * steal his stack. There may be times at which we don't want to do this?
+		 */
+		const stack = _.get(error, "stack");
 		const leftovers = Object.assign({}, arguments[0]);
+
 		/**
 		 * Attempts to get the preferred property but if not available then returns the next most "important"
 		 */
-		function getPreferred(preferredProperty: string): string {
+		function getAlternateInformation(preferredProperty: string): string {
 			let result;
 			if(leftovers[preferredProperty]) {
 				result = leftovers[preferredProperty];
@@ -62,29 +71,27 @@ export class PigError extends Error {
 		if(error) {
 			if(!_.isError(error)) {
 				error = new Error(error);
-			}
-			// steal goodies that we want to inherit
-			if((error as PigError).statusCode) {
-				statusCode = (error as PigError).statusCode;
+			} else {
+				//
+				// steal goodies that we want to inherit
+				if((error as PigError).statusCode) {
+					statusCode = (error as PigError).statusCode;
+				}
 			}
 		}
 
-		super(getPreferred("message"));
+		super(getAlternateInformation("message"));
 
-		// post process the data
-		if(error) {
-			// so that we can trace things to the true origin we steal his stack. There may be times at which we don't want to do this?
-			this.stack = (error as Error).stack;
-		}
-
+		// post process
 		_.merge(this, _.omitBy({
-			details: getPreferred("details"),
+			details: getAlternateInformation("details"),
 			error,
 			instance,
 			method: (typeof method === "function")
 				? method.name
 				: method,
-			module: this.stackToModule(),
+			module: module || this.stackToModule(),
+			stack,
 			statusCode,
 			...properties
 		}, _.isUndefined));
@@ -109,8 +116,7 @@ export class PigError extends Error {
 		try {
 			const lines = (this.stack as string).split("\n");
 			const module = (lines[1].match(/\((.+):\d+:\d+\)/) as RegExpMatchArray)[1];
-			const root = findModuleRoot(module);
-			return `.${module.substr(root.length)}`;
+			return getModulesRelativePath(module);
 		} catch(error) {
 			return undefined;
 		}

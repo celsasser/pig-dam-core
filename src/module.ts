@@ -7,9 +7,20 @@
 import {existsSync, statSync} from "fs";
 import {parse as parsePath} from "path";
 
+
+/**
+ * Gets the module's relative path to its own root
+ * @throws {Error}
+ */
+export function getModulesRelativePath(modulePath: string): string {
+	const root = findModuleRoot(modulePath);
+	// root is a path include the root "/projects/xraymen". We basically want to tear that off
+	return `.${modulePath.substr(root.length)}`;
+}
+
 /**
  * Finds the root for the module belonging to <param>modulePath</param>
- * @param modulePath
+ * @throws {Error}
  */
 export function findModuleRoot(modulePath: string): string {
 	function ascendPath(path: string): string {
@@ -32,5 +43,4 @@ export function findModuleRoot(modulePath: string): string {
 	return (stat.isDirectory())
 		? findRoot(modulePath)
 		: findRoot(ascendPath(modulePath));
-
 }

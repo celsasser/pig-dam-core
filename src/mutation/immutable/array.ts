@@ -7,7 +7,8 @@
 
 import * as _ from "lodash";
 import {compareAny} from "../../compare";
-import {ArrayInsertLocation} from "../../types/mutation";
+import {FailurePolicy} from "../../types";
+import {ArrayInsertLocation, ArraySearchCriteria} from "../../types/mutation";
 import {findInsertLocation, searchCriteriaToIndex} from "../utils";
 
 /**
@@ -62,16 +63,11 @@ export function pick(array: object[], path: string): object[] {
 
 /**
  * @param array - array from which to remove element
- * @param element - optional element to remove
- * @param index - optional case where index is known
- * @param predicate - that will be used by lodash to find our man
+ * @param criteria - criteria by which we find an index
+ * @param onFail - whether to throw or not throw errors if not found
  */
-export function remove<T>(array: T[], {element, index, predicate}: {
-	element?: T,
-	index?: number,
-	predicate?: _.ListIterateeCustom<T, boolean>
-}): T[] {
-	index = searchCriteriaToIndex(array, {element, index, predicate});
+export function remove<T>(array: T[], criteria: ArraySearchCriteria<T>, onFail: FailurePolicy = FailurePolicy.Throw): T[] {
+	const index = searchCriteriaToIndex(array, criteria, onFail);
 	return (index > -1)
 		? array.slice(0, index).concat(array.slice(index + 1))
 		: array;
@@ -80,22 +76,14 @@ export function remove<T>(array: T[], {element, index, predicate}: {
 /**
  * @param array - array from which to remove element
  * @param newElement - element to replace found searched for element
- * @param element - optional element to remove
- * @param index - optional case where index is known
- * @param predicate - that will be used by lodash to find our man
+ * @param criteria - criteria by which we find an index
  * @throws {Error} if existing element cannot be found
  */
-export function replace<T>(array: T[], newElement: T, {element, index, predicate}: {
-	element?: T,
-	index?: number,
-	predicate?: _.ListIterateeCustom<T, boolean>
-}): T[] {
-	index = searchCriteriaToIndex(array, {element, index, predicate});
+export function replace<T>(array: T[], newElement: T, criteria: ArraySearchCriteria<T>): T[] {
+	const index = searchCriteriaToIndex(array, criteria, FailurePolicy.Throw);
 	if(index > -1) {
 		array = array.slice();
 		array[index] = newElement;
-	} else {
-		throw new Error("immutable.array.replace(): Could not find element to replace");
 	}
 	return array;
 }

@@ -4,9 +4,10 @@
  * @license MIT (see project's LICENSE file)
  */
 
-import {findIndex, ListIterateeCustom} from "lodash";
+import {findIndex} from "lodash";
 import {PigError} from "../error";
-import {ArrayInsertLocation} from "../types/mutation";
+import {FailurePolicy} from "../types";
+import {ArrayInsertLocation, ArraySearchCriteria} from "../types/mutation";
 
 /**
  * Finds the insertion index
@@ -16,38 +17,67 @@ export function findInsertLocation<T>(array: T[], location: ArrayInsertLocation<
 	if(location.index !== undefined) {
 		return location.index;
 	} else if(location.after !== undefined) {
-		return array.indexOf(location.after) + 1;
+		const index = array.indexOf(location.after);
+		if(index < 0) {
+			throw new PigError({
+				message: 'could not find "after" element in array',
+				method: findInsertLocation
+			});
+		}
+		return index + 1;
 	} else if(location.before !== undefined) {
-		return array.indexOf(location.before);
+		const index = array.indexOf(location.before);
+		if(index < 0) {
+			throw new PigError({
+				message: 'could not find "before" element in array',
+				method: findInsertLocation
+			});
+		}
+		return index;
+	} else if(location.predicate !== undefined) {
+		const index = findIndex(array, location.predicate);
+		if(index < 0) {
+			throw new PigError({
+				message: "could not find index by predicate",
+				method: findInsertLocation
+			});
+		}
+		return index;
 	}
 	throw new PigError({
-		message: "no insertion information",
+		message: "essential insert criteria is missing",
 		method: findInsertLocation
 	});
 }
 
 /**
  * Find index with given criteria
- * @param array - array to search within
- * @param element - optional element to search for
- * @param index - odd case where index is known. Lets our API remain versatile
- * @param predicate - that will be used by lodash to find our man
  * @throws {Error}
  */
-export function searchCriteriaToIndex<T>(array: T[], {element, index, predicate}: {
-	element?: any,
-	index?: number,
-	predicate?: ListIterateeCustom<T, boolean>
-}): number {
-	if(element !== undefined) {
-		index = array.indexOf(element);
-	} else if(predicate !== undefined) {
-		index = findIndex(array, predicate);
-	} else if(index === undefined) {
+export function searchCriteriaToIndex<T>(array: T[], criteria: ArraySearchCriteria<T>, onFail: FailurePolicy = FailurePolicy.Ingore): number {
+	if(criteria.element !== undefined) {
+		const index = array.indexOf(criteria.element);
+		if(index<0 && onFail === FailurePolicy.Throw) {
+			throw new PigError({
+				message: "could not find specified element in array",
+				method: searchCriteriaToIndex
+			});
+		}
+		return index;
+	} else if(criteria.predicate !== undefined) {
+		const index = findIndex(array, criteria.predicate);
+		if(index<0 && onFail === FailurePolicy.Throw) {
+			throw new PigError({
+				message: "could not find element by predicate",
+				method: searchCriteriaToIndex
+			});
+		}
+		return index;
+	} else if(criteria.index === undefined) {
 		throw new PigError({
 			message: "essential search criteria is missing",
 			method: searchCriteriaToIndex
 		});
 	}
-	return index;
+	return criteria.index as number;
 }

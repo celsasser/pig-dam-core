@@ -51,7 +51,7 @@ export function datesAreEqual(date1?: Date|null, date2?: Date|null): boolean {
  */
 export function dateFromString(text?: string|null): Date|undefined {
 	let result;
-	if(text != undefined) {
+	if(text != null) {
 		result = Date.parse(text);
 		if(isNaN(result) === false) {
 			result = new Date(result);

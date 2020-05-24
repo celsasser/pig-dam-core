@@ -30,8 +30,8 @@ describe("error", function() {
 					error: new Error("error"),
 					instance: "instance",
 					message: "message",
-					module: "./test/unit/error.spec.ts",
 					method: "method",
+					module: "./test/unit/error.spec.ts",
 					statusCode: 100
 				});
 			});
@@ -47,8 +47,8 @@ describe("error", function() {
 			});
 
 			it("should properly derive 'message' from 'error' param", function() {
-				const error = new Error("message"),
-					instance = new PigError({error});
+				const error = new Error("message");
+				const instance = new PigError({error});
 				expect(_toPOJO(instance)).toEqual({
 					error,
 					message: "message",

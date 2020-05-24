@@ -41,19 +41,19 @@ export function parseUrn(urn: string, parts?: string[]): {
 		const split = urn.split(":");
 		if(parts === undefined) {
 			return {
-				parts: split.slice(1, split.length - 1),
-				nss: split[split.length - 1]
+				nss: split[split.length - 1],
+				parts: split.slice(1, split.length - 1)
 			};
 		} else {
 			if(parts.length !== split.length - 2) {
 				throw new Error(`parts=${JSON.stringify(parts)} is mismatched with urn ${urn}`);
 			}
 			return {
+				nss: split[split.length - 1],
 				parts: parts.reduce((result: {[index: string]: string}, part: string, index: number) => {
 					result[part] = split[index + 1];
 					return result;
-				}, {}),
-				nss: split[split.length - 1]
+				}, {})
 			};
 		}
 	}

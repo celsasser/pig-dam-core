@@ -27,12 +27,13 @@ describe("format.error", function() {
 			}
 
 			const error = new PigError({
-				instance: new DummyClass(),
-				message: "message"
+				context: new DummyClass(),
+				message: "message",
+				method: "method"
 			});
 			expect(errorToString(error, {
 				source: true
-			})).toStrictEqual("DummyClass: message");
+			})).toStrictEqual("DummyClass.method(): message");
 		});
 
 		it("should include method if included and requested", function() {
@@ -50,7 +51,7 @@ describe("format.error", function() {
 			}
 
 			const error = new PigError({
-				instance: new DummyClass(),
+				context: new DummyClass(),
 				message: "message",
 				method: "method"
 			});

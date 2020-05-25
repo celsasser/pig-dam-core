@@ -90,12 +90,23 @@ describe("stack", function() {
 	});
 
 	describe("parseStackLine", function() {
-		it("should properly parse a line with a method", function() {
+		it("should properly parse a line with a context and method", function() {
 			const result = parseStackLine("at Script.runInThisContext (vm.js:120:20)");
 			expect(result).toEqual({
 				column: 20,
+				context: "Script",
 				line: 120,
-				method: "Script.runInThisContext",
+				method: "runInThisContext",
+				module: "vm.js"
+			});
+		});
+
+		it("should properly parse a line with no context", function() {
+			const result = parseStackLine("at runInThisContext (vm.js:120:20)");
+			expect(result).toEqual({
+				column: 20,
+				line: 120,
+				method: "runInThisContext",
 				module: "vm.js"
 			});
 		});

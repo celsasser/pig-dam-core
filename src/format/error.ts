@@ -39,10 +39,10 @@ export function errorToString(error: PigError|Error|string, {
 		// if that amount of info is desired then we will asume that they will include the stack.
 		if(source === false) {
 			text = `${text}${error.message}`;
-		} else if("instance" in error && "method" in error) {
-			text = `${text}${error.instance}.${error.method}(): ${error.message}`;
-		} else if("instance" in error) {
-			text = `${text}${error.instance}: ${error.message}`;
+		} else if("context" in error && "method" in error) {
+			text = `${text}${error.context}.${error.method}(): ${error.message}`;
+		} else if("context" in error) {
+			text = `${text}${error.context}: ${error.message}`;
 		} else if("method" in error) {
 			text = `${text}${error.method}(): ${error.message}`;
 		} else {

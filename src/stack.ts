@@ -66,8 +66,8 @@ export function parseStack(errorOrStack: Error|string): {
 	const split = stack.split(/\s*\n\s*/)
 		.filter(_.negate(_.isEmpty));
 	return {
-		message: split[0],
-		lines: split.slice(1)
+		lines: split.slice(1),
+		message: split[0]
 	}
 }
 
@@ -77,6 +77,7 @@ export function parseStack(errorOrStack: Error|string): {
  */
 export function parseStackLine(line: string): {
 	column: number
+	context?: string,
 	line: number,
 	module: string,
 	method?: string
@@ -87,17 +88,21 @@ export function parseStackLine(line: string): {
 	 * 1. without method: "at repl:1:7"
 	 * 2. with method: "at Script.runInThisContext (vm.js:120:20)"
 	 */
-	const regexWithMethod = /^\s*at\s*(\S+)\s*\((.+):(\d+):(\d+)\)\s*$/;
+	const regexWithMethod = /^\s*at\s*(([^\s.]+)(\.(\S+))?)\s*\((.+):(\d+):(\d+)\)\s*$/;
 	const regexWithoutMethod = /^\s*at\s*(.+):(\d+):(\d+)\s*$/;
 
 	match = line.match(regexWithMethod);
 	if(match) {
-		return {
-			column: Number(match[4]),
-			line: Number(match[3]),
-			module: match[2],
-			method: match[1]
-		}
+		// @ts-ignore
+		return _.omitBy({
+			column: Number(match[7]),
+			// if we could not isolate a method then there is no context
+			context: (match[4]) ? match[2] : undefined,
+			line: Number(match[6]),
+			module: match[5],
+			// if there is no context then we take thw whole thing
+			method: (match[4]) ? match[4] : match[1]
+		}, _.isUndefined);
 	}
 	match = line.match(regexWithoutMethod);
 	if(match) {

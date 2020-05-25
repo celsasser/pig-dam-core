@@ -18,17 +18,17 @@ describe("error.pig", function() {
 		describe("constructor", function() {
 			it("should populate all supported params properly", function() {
 				const instance = new PigError({
+					context: "context",
 					details: "details",
 					error: new Error("error"),
-					instance: "instance",
 					message: "message",
 					method: "method",
 					statusCode: 100
 				});
 				expect(_toPOJO(instance)).toEqual({
+					context: "context",
 					details: "details",
 					error: new Error("error"),
-					instance: "instance",
 					message: "message",
 					method: "method",
 					module: "./test/unit/error/pig.spec.ts",
@@ -36,12 +36,13 @@ describe("error.pig", function() {
 				});
 			});
 
-			it("should convert a newable instance to a string", function() {
+			it("should convert a newable context to a string", function() {
 				const instance = new PigError({
-					instance: new Date()
+					context: new Date()
 				});
 				expect(_toPOJO(instance)).toEqual({
-					instance: "Date",
+					context: "Date",
+					method: "<anonymous>",
 					module: "./test/unit/error/pig.spec.ts",
 				});
 			});
@@ -52,6 +53,7 @@ describe("error.pig", function() {
 				expect(_toPOJO(instance)).toEqual({
 					error,
 					message: "message",
+					method: "<anonymous>",
 					module: "./test/unit/error/pig.spec.ts"
 				});
 			});
@@ -64,6 +66,7 @@ describe("error.pig", function() {
 					details: "details",
 					error: new Error("details"),
 					message: "message",
+					method: "<anonymous>",
 					module: "./test/unit/error/pig.spec.ts"
 				});
 
@@ -73,6 +76,7 @@ describe("error.pig", function() {
 				}))).toEqual({
 					details: "Continue (100)",
 					message: "message",
+					method: "<anonymous>",
 					module: "./test/unit/error/pig.spec.ts",
 					statusCode: 100
 				});
@@ -88,6 +92,28 @@ describe("error.pig", function() {
 					method: "dummy",
 					module: "./test/unit/error/pig.spec.ts"
 				});
+			});
+
+			it("should properly derive class and method if not specified", function() {
+				class DummyClass {
+					public throw() {
+						throw new PigError({
+							message: "message"
+						});
+					}
+				}
+
+				const instance = new DummyClass();
+				try {
+					instance.throw();
+				} catch(error) {
+					expect(_toPOJO(error)).toEqual({
+						context: "DummyClass",
+						message: "message",
+						method: "throw",
+						module: "./test/unit/error/pig.spec.ts"
+					});
+				}
 			});
 		});
 	});

@@ -16,18 +16,18 @@ export function getStack({
 	popCount = 0,
 	maxLines = 10
 } = {}): string {
-	// pop ourselves
-	popCount++;
 	return groomStack(new Error(), {
 		maxLines,
-		popCount
+		// pop ourselves
+		popCount: popCount+1
 	});
 }
 
 /**
- * Grooms the textual stack:
- * - uses parseStack to get stack lines (not message)
- * - pops and trims
+ * Gets the stack, parses it via `parseStack` and refines it as requested
+ * @param errorOrStack - either is the stack or is an error from which we will pull the stack
+ * @param popCount - number of lines to pop off the top
+ * @param maxLines - max number of stack lines to include (stacks can get very long and noisey
  * And returns him back to you so you can hug and kiss him and call him?
  */
 export function groomStack(errorOrStack: Error|string, {
@@ -45,12 +45,21 @@ export function groomStack(errorOrStack: Error|string, {
 }
 
 /**
- * Splits this fellow up into his bits and pieces
+ * Splits this fellow up into the message and the call history. It removes all formatting (leading
+ * and trailing white space).
  */
 export function parseStack(errorOrStack: Error|string): {
 	lines: string[],
 	message: string
 } {
+	/**
+	 * Sample stack
+	 * "Error Message\n" +
+	 * "    at repl:1:7\n" +
+	 * "    at Script.runInThisContext (vm.js:120:20)\n" +
+	 * "    at REPLServer.defaultEval (repl.js:431:29)\n" +
+	 * "    ...";
+	 */
 	const stack: string = (errorOrStack instanceof Error)
 		? errorOrStack.stack as string
 		: errorOrStack;
@@ -63,7 +72,7 @@ export function parseStack(errorOrStack: Error|string): {
 }
 
 /**
- * Parses a line in a stack (not the message).
+ * Parses a line of call history in a stack (not the message).
  * @throws {Error} if unable to parse
  */
 export function parseStackLine(line: string): {

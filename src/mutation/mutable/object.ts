@@ -10,7 +10,7 @@ export type RemovableFilter = (value: any, key: string) => boolean;
 export type RemovableType = any|RemovableFilter;
 
 /**
- * Deletes the object at the property path in <code>object</code>
+ * Deletes the object at the property path in `object`
  */
 export function deletePath(object: {[key: string]: any}, path: string): {[key: string]: any} {
 	function _delete(_object: {[key: string]: any}, property: string) {

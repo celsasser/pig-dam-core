@@ -29,9 +29,9 @@ export const parallel = Promise.all;
  * Creates a process chain out of an array of promise factories.  Why can't they be promises? Because promises execute immediately.
  * We want to defer execution until the prior promise has resolved.
  * @param series - series of functions that return promises
- * @param initialParameter - initial parameter into <code>series[0]()</code>
+ * @param initialParameter - initial parameter into `series[0]()`
  */
-export function series<T = any>(series: (() => Promise<T>)[], initialParameter?: T): Promise<T> {
+export function series<T = any>(series: ((...args: any[]) => Promise<T>)[], initialParameter?: T): Promise<T> {
 	return series.reduce(
 		(current: Promise<T>, next: () => Promise<T>) => current.then(next),
 		Promise.resolve(initialParameter as T)

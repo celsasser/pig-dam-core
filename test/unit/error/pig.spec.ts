@@ -4,9 +4,9 @@
  */
 
 import * as _ from "lodash";
-import {PigError} from "../../src";
+import {PigError} from "../../../src";
 
-describe("error", function() {
+describe("error.pig", function() {
 	describe("PigError", function() {
 		function _toPOJO(error: Error): object {
 			return _(error)
@@ -31,7 +31,7 @@ describe("error", function() {
 					instance: "instance",
 					message: "message",
 					method: "method",
-					module: "./test/unit/error.spec.ts",
+					module: "./test/unit/error/pig.spec.ts",
 					statusCode: 100
 				});
 			});
@@ -42,7 +42,7 @@ describe("error", function() {
 				});
 				expect(_toPOJO(instance)).toEqual({
 					instance: "Date",
-					module: "./test/unit/error.spec.ts",
+					module: "./test/unit/error/pig.spec.ts",
 				});
 			});
 
@@ -52,7 +52,7 @@ describe("error", function() {
 				expect(_toPOJO(instance)).toEqual({
 					error,
 					message: "message",
-					module: "./test/unit/error.spec.ts"
+					module: "./test/unit/error/pig.spec.ts"
 				});
 			});
 
@@ -64,7 +64,7 @@ describe("error", function() {
 					details: "details",
 					error: new Error("details"),
 					message: "message",
-					module: "./test/unit/error.spec.ts"
+					module: "./test/unit/error/pig.spec.ts"
 				});
 
 				expect(_toPOJO(new PigError({
@@ -73,7 +73,7 @@ describe("error", function() {
 				}))).toEqual({
 					details: "Continue (100)",
 					message: "message",
-					module: "./test/unit/error.spec.ts",
+					module: "./test/unit/error/pig.spec.ts",
 					statusCode: 100
 				});
 			});
@@ -86,15 +86,8 @@ describe("error", function() {
 				expect(_toPOJO(instance)).toEqual({
 					message: "message",
 					method: "dummy",
-					module: "./test/unit/error.spec.ts"
+					module: "./test/unit/error/pig.spec.ts"
 				});
-			});
-
-			it("should inherit the 'error' param's stack", function() {
-				const error = new Error();
-				error.stack = "stack";
-				const instance = new PigError({error});
-				expect(instance.stack).toEqual("stack");
 			});
 		});
 	});

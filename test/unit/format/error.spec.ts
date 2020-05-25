@@ -4,10 +4,10 @@
  * @license MIT (see project's LICENSE file)
  */
 
-import {errorToString, messageToString, PigError} from "../../src";
+import {errorToString, PigError} from "../../../src";
 
 
-describe("format", function() {
+describe("format.error", function() {
 	describe("errorToString", function() {
 		it("should convert an error to a string by default without a stack", function() {
 			const error = new Error("failed");
@@ -16,10 +16,10 @@ describe("format", function() {
 
 		it("should convert an error to a string by with a stack if requested", function() {
 			const error = new Error("failed");
-			error.stack = "one\ntwo\nthree";
+			error.stack = "message\nline1\nline2";
 			expect(errorToString(error, {
 				stack: true
-			})).toEqual("failed\ntwo\nthree");
+			})).toEqual("failed\nline1\nline2");
 		});
 
 		it("should include instance if included and requested", function() {
@@ -57,29 +57,6 @@ describe("format", function() {
 			expect(errorToString(error, {
 				source: true
 			})).toEqual("DummyClass.method(): message");
-		});
-	});
-
-	describe("messageToString", function() {
-		it("should convert an error to a string by default without a stack", function() {
-			const error = new Error("failed");
-			expect(messageToString(error))
-				.toEqual("failed");
-		});
-
-		it("should convert an error to a string by with a stack if requested", function() {
-			const error = new Error("failed");
-			expect(messageToString(error, {stack: true}))
-				.not.toStrictEqual("failed");
-		});
-
-		it("should convert a function to a string by without a stack", function() {
-			expect(messageToString(() => "message")).toEqual("message");
-		});
-
-		it("should convert a function to a string by with a stack if requested", function() {
-			expect(messageToString(() => "message", {stack: true}))
-				.not.toStrictEqual("message");
 		});
 	});
 });

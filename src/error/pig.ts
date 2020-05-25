@@ -6,9 +6,10 @@
  */
 
 import * as _ from "lodash";
-import {getModulesRelativePath} from "./module";
-import {getTypeName} from "./type";
-import {HttpStatusCode, httpStatusCodeToText} from "./types";
+import {getModulesRelativePath} from "../module";
+import {parseStack, parseStackLine} from "../stack";
+import {getTypeName} from "../type";
+import {HttpStatusCode, httpStatusCodeToText} from "../types";
 
 /**
  * Custom Error type that supports some "smart" constructors. And some property annotation support
@@ -44,11 +45,6 @@ export class PigError extends Error {
 		module?: string,
 		statusCode?: HttpStatusCode|number
 	}) {
-		/**
-		 * A more preferable stack if we can find one. So that we can trace things to the true origin we
-		 * steal his stack. There may be times at which we don't want to do this?
-		 */
-		const stack = _.get(error, "stack");
 		const leftovers = Object.assign({}, arguments[0]);
 
 		/**
@@ -77,7 +73,6 @@ export class PigError extends Error {
 			if(!_.isError(error)) {
 				error = new Error(error);
 			} else {
-				//
 				// steal goodies that we want to inherit
 				if((error as PigError).statusCode) {
 					statusCode = (error as PigError).statusCode;
@@ -96,7 +91,6 @@ export class PigError extends Error {
 				? method.name
 				: method,
 			module: module || this.stackToModule(),
-			stack,
 			statusCode,
 			...properties
 		}, _.isUndefined));
@@ -109,18 +103,9 @@ export class PigError extends Error {
 	 * Examines the stack and tries to figure out the module that raised the error
 	 */
 	private stackToModule(): string|undefined {
-		/**
-		 * An error is going to look something like this
-		 *
-		 * Error: message
-		 *	at Object.<anonymous> (/Users/curtis/Develop/projects/node/pig/dam/core/test/unit/format.spec.ts:29:18)
-		 *  ...
-		 *
-		 *  We are going to look for and parse the first call stack item (lines[1])
-		 */
 		try {
-			const lines = (this.stack as string).split("\n");
-			const module = (lines[1].match(/\((.+):\d+:\d+\)/) as RegExpMatchArray)[1];
+			const {lines} = parseStack(this);
+			const {module} = parseStackLine(lines[0]);
 			return getModulesRelativePath(module);
 		} catch(error) {
 			return undefined;

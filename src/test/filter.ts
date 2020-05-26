@@ -8,7 +8,7 @@
 import {TestDescription} from "../types";
 
 /**
- * Filters test descriptions that support the <code>TestDescription</code> interface
+ * Filters test descriptions that support the `TestDescription` interface
  */
 export function filterTestDescriptions<T extends TestDescription>(suite: T[]): T[] {
 	const filtered: {

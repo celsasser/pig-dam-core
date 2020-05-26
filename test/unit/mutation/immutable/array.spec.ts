@@ -20,9 +20,27 @@ describe("mutation.immutable.array", function() {
 			expect(result).toEqual([1, 2]);
 		});
 
-		it("should insert an element to an existing array", function() {
+		it("should insert an element to an existing array by index", function() {
 			const original = Object.freeze([1, 3]);
-			const result = immutable.array.add(original as number[], 2, 1);
+			const result = immutable.array.add(original as number[], 2, {
+				index: 1
+			});
+			expect(result).toEqual([1, 2, 3]);
+		});
+
+		it("should insert an element after an element", function() {
+			const original = Object.freeze([1, 3]);
+			const result = immutable.array.add(original as number[], 2, {
+				after: 1
+			});
+			expect(result).toEqual([1, 2, 3]);
+		});
+
+		it("should insert an element before an element", function() {
+			const original = Object.freeze([1, 3]);
+			const result = immutable.array.add(original as number[], 2, {
+				before: 3
+			});
 			expect(result).toEqual([1, 2, 3]);
 		});
 	});
@@ -39,9 +57,27 @@ describe("mutation.immutable.array", function() {
 			expect(result).toEqual([1, 2, 3]);
 		});
 
-		it("should insert elements into an existing array", function() {
+		it("should insert elements into an existing array by index", function() {
 			const original = Object.freeze([1, 4]);
-			const result = immutable.array.concat(original as number[], [2, 3], 1);
+			const result = immutable.array.concat(original as number[], [2, 3], {
+				index: 1
+			});
+			expect(result).toEqual([1, 2, 3, 4]);
+		});
+
+		it("should insert elements after an element", function() {
+			const original = Object.freeze([1, 4]);
+			const result = immutable.array.concat(original as number[], [2, 3], {
+				after: 1
+			});
+			expect(result).toEqual([1, 2, 3, 4]);
+		});
+
+		it("should insert elements before an element", function() {
+			const original = Object.freeze([1, 4]);
+			const result = immutable.array.concat(original as number[], [2, 3], {
+				before: 4
+			});
 			expect(result).toEqual([1, 2, 3, 4]);
 		});
 	});

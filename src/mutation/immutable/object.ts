@@ -38,7 +38,7 @@ export function clone(object: {[key: string]: any}, {
 }
 
 /**
- * Deletes the object at the property path in <code>object</code>
+ * Deletes the object at the property path in `object`
  * @param {Object|Array|null} object
  * @param {string} path
  * @returns {Object|Array}

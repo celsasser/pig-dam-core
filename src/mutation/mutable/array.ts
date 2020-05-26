@@ -6,23 +6,27 @@
 
 import * as _ from "lodash";
 import {compareAny} from "../../compare";
-import {searchCriteriaToIndex} from "../utils";
+import {FailurePolicy} from "../../types";
+import {ArrayInsertLocation, ArraySearchCriteria} from "../../types/mutation";
+import {findInsertLocation, searchCriteriaToIndex} from "../utils";
 
 
 /**
  * Adds element.
  * @param array - may be null provided that this is an "dateAdd" operation
  * @param element - element to be inserted
- * @param index - optional index
+ * @param location - optional location information
+ * @throws {Error}
  */
-export function add<T>(array: T[], element: T, index?: number): T[] {
+export function add<T>(array: T[], element: T, location?: ArrayInsertLocation<T>): T[] {
 	if(!array) {
 		array = [];
 	}
-	if(index === undefined) {
-		array.push(element);
+	if(location) {
+		const index = findInsertLocation(array, location);
+		array.splice(index, 0, element);
 	} else {
-		return array.splice(index, 0, element);
+		array.push(element);
 	}
 	return array;
 }
@@ -31,17 +35,19 @@ export function add<T>(array: T[], element: T, index?: number): T[] {
  * Concatenates <param>array</param> and <param>elements</param>
  * @param array - may be null provided that there is no <param>index</param>
  * @param elements - elements be added or inserted
- * @param index - optional index
+ * @param location - optional location information
+ * @throws {Error}
  */
-export function concat<T>(array: T[], elements: T[], index?: number): T[] {
+export function concat<T>(array: T[], elements: T[], location?: ArrayInsertLocation<T>): T[] {
 	if(!array) {
 		array = [];
 	}
-	if(index === undefined) {
+	if(location === undefined) {
 		_.each(elements, function(element) {
 			array.push(element);
 		});
 	} else {
+		const index = findInsertLocation(array, location);
 		_.each(elements, function(element, offset) {
 			return array.splice(index + offset, 0, element);
 		});
@@ -71,16 +77,11 @@ export function pick(array: object[], path: string): object[] {
 
 /**
  * @param array - array from which to remove element
- * @param element - optional element to remove
- * @param index - optional case where index is known
- * @param predicate - that will be used by lodash to find our man
+ * @param criteria - criteria by which we find an index
+ * @param onFail - whether to throw or not throw errors if not found
  */
-export function remove<T>(array: T[], {element, index, predicate}: {
-	element?: T,
-	index?: number,
-	predicate?: _.ListIterateeCustom<T, boolean>
-}): T[] {
-	index = searchCriteriaToIndex(array, {element, index, predicate});
+export function remove<T>(array: T[], criteria: ArraySearchCriteria<T>, onFail: FailurePolicy = FailurePolicy.Throw): T[] {
+	const index = searchCriteriaToIndex(array, criteria, onFail);
 	if(index > -1) {
 		array.splice(index, 1);
 	}
@@ -90,21 +91,13 @@ export function remove<T>(array: T[], {element, index, predicate}: {
 /**
  * @param array - array from which to remove element
  * @param newElement - element to replace found searched for element
- * @param element - optional element to remove
- * @param index - optional case where index is known
- * @param predicate - that will be used by lodash to find our man
+ * @param criteria - criteria by which we find an index
  * @throws {Error} if existing element cannot be found
  */
-export function replace<T>(array: T[], newElement: T, {element, index, predicate}: {
-	element?: T,
-	index?: number,
-	predicate?: _.ListIterateeCustom<T, boolean>
-}): T[] {
-	index = searchCriteriaToIndex(array, {element, index, predicate});
+export function replace<T>(array: T[], newElement: T, criteria: ArraySearchCriteria<T>): T[] {
+	const index = searchCriteriaToIndex(array, criteria, FailurePolicy.Throw);
 	if(index > -1) {
 		array[index] = newElement;
-	} else {
-		throw new Error("mutable.array.replace(): Could not find element to replace");
 	}
 	return array;
 }

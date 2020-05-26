@@ -67,7 +67,7 @@ describe("mutation.immutable.object", function() {
 			expect(immutable.object.sort(null)).toEqual(null);
 		});
 
-		it("should return sort an object's properties", function() {
+		it("should sort and return an object's properties", function() {
 			const source = {
 				b1: {
 					b2: "b2",

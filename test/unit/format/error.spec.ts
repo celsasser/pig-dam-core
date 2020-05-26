@@ -9,6 +9,12 @@ import {errorToString, PigError} from "../../../src";
 
 describe("format.error", function() {
 	describe("errorToString", function() {
+		/**
+		 * A dummy context for testing
+		 */
+		class DummyClass {}
+
+
 		it("should convert an error to a string by default without a stack", function() {
 			const error = new Error("failed");
 			expect(errorToString(error)).toEqual("failed");
@@ -23,9 +29,6 @@ describe("format.error", function() {
 		});
 
 		it("should include instance if included and requested", function() {
-			class DummyClass {
-			}
-
 			const error = new PigError({
 				context: new DummyClass(),
 				message: "message",
@@ -33,7 +36,7 @@ describe("format.error", function() {
 			});
 			expect(errorToString(error, {
 				source: true
-			})).toStrictEqual("DummyClass.method(): message");
+			})).toEqual("DummyClass.method(): message");
 		});
 
 		it("should include method if included and requested", function() {
@@ -47,9 +50,6 @@ describe("format.error", function() {
 		});
 
 		it("should include instance and method if included and requested", function() {
-			class DummyClass {
-			}
-
 			const error = new PigError({
 				context: new DummyClass(),
 				message: "message",

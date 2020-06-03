@@ -5,39 +5,53 @@
  */
 
 
-import {getStack, groomStack, parseStack, parseStackLine} from "../../src";
+import {getStack, groomStack, parseStack, parseStackLine} from "../../src/stack";
 
 describe("stack", function() {
 	/********************
 	 * Test Data
 	 ********************/
 	/**
-	 * Truncated stack that I pulled from the node repl.
+	 * Examples take from https://nodejs.org/api/errors.html#errors_error_stack
 	 */
-	const testStack: string = "Error\n" +
-		"    at repl:1:7\n" +
-		"    at Script.runInThisContext (vm.js:120:20)\n" +
-		"    at REPLServer.defaultEval (repl.js:431:29)\n" +
-		"    at bound (domain.js:426:14)";
-
-	/**
-	 * Error with same stack assigned to its stack property
-	 */
-	const testError = new Error("Error");
-	testError.stack = testStack;
+	const testStack: string = "Message line 1\n"
+		+ "    Message line 2\n"
+		+ "    at speedy (/home/gbusey/file.js:6:11)\n"
+		+ "    at makeFaster (/home/gbusey/file.js:5:3)\n"
+		+ "    at Object.<anonymous> (/home/gbusey/file.js:10:1)\n"
+		+ "    at Module._compile (module.js:456:26)\n"
+		+ "    at Object.Module._extensions..js (module.js:474:10)\n"
+		+ "    at Module.load (module.js:356:32)\n"
+		+ "    at Function.Module._load (module.js:312:12)\n"
+		+ "    at Function.Module.runMain (module.js:497:10)\n"
+		+ "    at startup (node.js:119:16)\n"
+		+ "    at node.js:906:3\n";
 
 	/**
 	 * Stack up yonder parsed as we expect it to be
 	 */
 	const testStackParsed = {
 		lines: [
-			"at repl:1:7",
-			"at Script.runInThisContext (vm.js:120:20)",
-			"at REPLServer.defaultEval (repl.js:431:29)",
-			"at bound (domain.js:426:14)"
+			"at speedy (/home/gbusey/file.js:6:11)",
+			"at makeFaster (/home/gbusey/file.js:5:3)",
+			"at Object.<anonymous> (/home/gbusey/file.js:10:1)",
+			"at Module._compile (module.js:456:26)",
+			"at Object.Module._extensions..js (module.js:474:10)",
+			"at Module.load (module.js:356:32)",
+			"at Function.Module._load (module.js:312:12)",
+			"at Function.Module.runMain (module.js:497:10)",
+			"at startup (node.js:119:16)",
+			"at node.js:906:3"
 		],
-		message: "Error"
-	}
+		message: "Message line 1\n" +
+			"    Message line 2"
+	};
+
+	/**
+	 * Error with same stack assigned to its stack property
+	 */
+	const testError = new Error("Error");
+	testError.stack = testStack;
 
 
 	/********************
@@ -90,34 +104,45 @@ describe("stack", function() {
 	});
 
 	describe("parseStackLine", function() {
-		it("should properly parse a line with a context and method", function() {
-			const result = parseStackLine("at Script.runInThisContext (vm.js:120:20)");
+		it("should properly parse a line without a method", function() {
+			const result = parseStackLine("at node.js:906:3");
 			expect(result).toEqual({
-				column: 20,
-				context: "Script",
-				line: 120,
-				method: "runInThisContext",
-				module: "vm.js"
+				"column": 3,
+				"line": 906,
+				"module": "node.js"
 			});
 		});
 
 		it("should properly parse a line with no context", function() {
-			const result = parseStackLine("at runInThisContext (vm.js:120:20)");
+			const result = parseStackLine("at speedy (/home/gbusey/file.js:6:11)");
 			expect(result).toEqual({
-				column: 20,
-				line: 120,
-				method: "runInThisContext",
-				module: "vm.js"
+				"column": 11,
+				"line": 6,
+				"method": "speedy",
+				"module": "/home/gbusey/file.js"
 			});
 		});
 
-		it("should properly parse a line without a method", function() {
-			const result = parseStackLine("at repl:1:7");
+		it("should properly parse a line with a context and method", function() {
+			const result = parseStackLine("at Module.load (module.js:356:32)");
 			expect(result).toEqual({
-				column: 7,
-				line: 1,
-				module: "repl"
-			})
+				"column": 32,
+				"context": "Module",
+				"line": 356,
+				"method": "load",
+				"module": "module.js"
+			});
+		});
+
+		it("should properly parse a line with multiple contexts and method", function() {
+			const result = parseStackLine("at Object.Module._extensions..js (module.js:474:10)");
+			expect(result).toEqual({
+				"column": 10,
+				"context": "Object",
+				"line": 474,
+				"method": "Module._extensions..js",
+				"module": "module.js"
+			});
 		});
 
 		it("should throw an exception if line cannot be parsed", function() {

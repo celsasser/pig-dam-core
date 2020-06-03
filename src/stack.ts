@@ -3,10 +3,10 @@
  * Time: 9:10 PM
  * @license MIT (see project's LICENSE file)
  *
+ * NOTE: we do not want to use PigError here 'cause he uses us
  */
 
 import * as _ from "lodash";
-import {PigError} from "./error";
 
 /**
  * Gets the current execution stack as a string.
@@ -19,7 +19,7 @@ export function getStack({
 	return groomStack(new Error(), {
 		maxLines,
 		// pop ourselves
-		popCount: popCount+1
+		popCount: popCount + 1
 	});
 }
 
@@ -63,12 +63,29 @@ export function parseStack(errorOrStack: Error|string): {
 	const stack: string = (errorOrStack instanceof Error)
 		? errorOrStack.stack as string
 		: errorOrStack;
-	const split = stack.split(/\s*\n\s*/)
-		.filter(_.negate(_.isEmpty));
+	// the reason we don't remove all whitespace around the newline is so that we can retain
+	// message formatting. For example, it may be stringified JSON. We want to keep that whitespace.
+	const split = stack.split(/\n/)
+		.filter(line => line.trim() !== "");
+	// to find the first line in the execution history of the stack we are going to use our
+	// `parseStackLine` and wait for it to succeed and we will assume that is the first line
+	// in the stacks execution history
+	const firstExecutionLine = _.findIndex(split, line => {
+		try {
+			parseStackLine(line);
+			return true;
+		} catch(error) {
+			return false;
+		}
+	});
 	return {
-		lines: split.slice(1),
-		message: split[0]
-	}
+		lines: split
+			.slice(firstExecutionLine)
+			.map(_.trim),
+		message: split
+			.slice(0, firstExecutionLine)
+			.join("\n")
+	};
 }
 
 /**
@@ -84,9 +101,18 @@ export function parseStackLine(line: string): {
 } {
 	let match;
 	/**
-	 * There appear to be two different varieties:
-	 * 1. without method: "at repl:1:7"
-	 * 2. with method: "at Script.runInThisContext (vm.js:120:20)"
+	 * As documented by nodejs (https://nodejs.org/api/errors.html#errors_error_stack)
+	 * the following variations exist:
+	 *   at speedy (/home/gbusey/file.js:6:11)
+	 *   at makeFaster (/home/gbusey/file.js:5:3)
+	 *   at Object.<anonymous> (/home/gbusey/file.js:10:1)
+	 *   at Module._compile (module.js:456:26)
+	 *   at Object.Module._extensions..js (module.js:474:10)
+	 *   at Module.load (module.js:356:32)
+	 *   at Function.Module._load (module.js:312:12)
+	 *   at Function.Module.runMain (module.js:497:10)
+	 *   at startup (node.js:119:16)
+	 *   at node.js:906:3
 	 */
 	const regexWithMethod = /^\s*at\s*(([^\s.]+)(\.(\S+))?)\s*\((.+):(\d+):(\d+)\)\s*$/;
 	const regexWithoutMethod = /^\s*at\s*(.+):(\d+):(\d+)\s*$/;
@@ -97,11 +123,15 @@ export function parseStackLine(line: string): {
 		return _.omitBy({
 			column: Number(match[7]),
 			// if we could not isolate a method then there is no context
-			context: (match[4]) ? match[2] : undefined,
+			context: (match[4])
+				? match[2]
+				: undefined,
 			line: Number(match[6]),
-			module: match[5],
 			// if there is no context then we take thw whole thing
-			method: (match[4]) ? match[4] : match[1]
+			method: (match[4])
+				? match[4]
+				: match[1],
+			module: match[5]
 		}, _.isUndefined);
 	}
 	match = line.match(regexWithoutMethod);
@@ -110,9 +140,7 @@ export function parseStackLine(line: string): {
 			column: Number(match[3]),
 			line: Number(match[2]),
 			module: match[1]
-		}
+		};
 	}
-	throw new PigError({
-		message: `unable to parse "${line}"`
-	});
+	throw new Error(`unable to parse "${line}"`);
 }

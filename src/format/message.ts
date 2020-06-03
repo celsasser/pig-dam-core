@@ -1,13 +1,12 @@
 /**
- * Date: 10/18/18
- * Time: 10:08 PM
+ * Date: 10/29/19
+ * Time: 9:46 PM
  * @license MIT (see project's LICENSE file)
- *
  */
-
 
 import {getStack} from "../stack";
 import {errorToString} from "./error";
+
 
 /**
  * This guy serves up text but text that adheres to a lazy convention we use for assertions and other functionality
@@ -37,3 +36,4 @@ export function messageToString(message?: string|Error|(() => string), {
 		return text;
 	}
 }
+

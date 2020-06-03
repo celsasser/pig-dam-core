@@ -4,7 +4,11 @@
  * @license MIT (see project's LICENSE file)
  */
 
-import {getErrorThrowSequence, PigError} from "../../../src/error";
+import {
+	getErrorThrowSequence,
+	getReverseErrorThrowSequence,
+	PigError
+} from "../../../src/error";
 
 describe("error.utils", function() {
 	describe("getErrorThrowSequence", function() {
@@ -34,6 +38,23 @@ describe("error.utils", function() {
 				.toEqual([
 					inside,
 					outside
+				]);
+		});
+	});
+
+	describe("getErrorThrowSequence", function() {
+		it("should return a sequence from the outside in", function() {
+			const inside = new PigError({
+				message: "inside"
+			});
+			const outside = new PigError({
+				error: inside,
+				message: "outside"
+			});
+			expect(getReverseErrorThrowSequence(outside))
+				.toEqual([
+					outside,
+					inside
 				]);
 		});
 	});

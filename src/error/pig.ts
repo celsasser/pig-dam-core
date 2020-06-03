@@ -9,7 +9,7 @@ import * as _ from "lodash";
 import {getModulesRelativePath} from "../module";
 import {parseStack, parseStackLine} from "../stack";
 import {getTypeName} from "../type";
-import {HttpStatusCode, httpStatusCodeToText} from "../types";
+import {httpStatusCodeToText} from "../types";
 
 /**
  * Custom Error type that has some brains and functionality to:
@@ -24,7 +24,7 @@ export class PigError extends Error {
 	public readonly metadata?: object;
 	public readonly method?: string;
 	public readonly module?: string;
-	public readonly statusCode?: HttpStatusCode|number;
+	public readonly statusCode?: number;
 
 	/**
 	 * General purpose pig error that hold all of our secrets. He is designed to stash information related to the
@@ -52,21 +52,18 @@ export class PigError extends Error {
 		metadata?: object,
 		method?: string|Function,
 		module?: string,
-		statusCode?: HttpStatusCode|number
+		statusCode?: number
 	}) {
 		const leftovers = Object.assign({}, arguments[0]);
 
 		/**
-		 * Attempts to get the preferred property but if not available then returns the next most "important"
+		 * Attempts to get the preferred property but if not available then returns the next best choice
 		 */
 		function getOptimalInformation(preferredProperty: string): string {
 			let result;
 			if(leftovers[preferredProperty]) {
 				result = leftovers[preferredProperty];
 				delete leftovers[preferredProperty];
-			} else if(leftovers.error) {
-				result = leftovers.error.message;
-				delete leftovers.error;
 			} else if(leftovers.statusCode) {
 				result = `${httpStatusCodeToText(leftovers.statusCode)} (${leftovers.statusCode})`;
 				delete leftovers.statusCode;
@@ -74,22 +71,24 @@ export class PigError extends Error {
 			return result;
 		}
 
-		// preprocess the data
 		if(context && typeof context !== "string") {
 			context = getTypeName(context);
+		}
+		if(typeof method === "function") {
+			method = method.name;
 		}
 		if(error) {
 			if(typeof error === "string") {
 				error = new Error(error);
 			} else {
-				// steal goodies that we want to inherit
+				// statusCode will percolate up and be relevant right up to the tippy top
 				if("statusCode" in error) {
 					statusCode = error.statusCode;
 				}
 			}
 		}
 
-		super(getOptimalInformation("message"));
+		super(getOptimalInformation("message") || _.get(error, "message"));
 
 		// setup the instance
 		Object.assign(this,
@@ -99,9 +98,7 @@ export class PigError extends Error {
 				details: getOptimalInformation("details"),
 				error,
 				metadata,
-				method: (typeof method === "function")
-					? method.name
-					: method,
+				method,
 				module,
 				statusCode
 			}, _.isUndefined)
@@ -119,16 +116,26 @@ export class PigError extends Error {
 		method?: string,
 		module?: string
 	} {
+		/**
+		 * There are some context's that make sense from a stack standpoint but don't from
+		 * an error message standpoint. They are not helpful. So let's not include the mystery.
+		 */
+		function filterContext(context?: string): string|undefined {
+			const exlude = [
+				"Function",
+				"Module",
+				"Object"
+			];
+			return _.includes(exlude, context)
+				? undefined
+				: context;
+		}
+
 		try {
 			const {lines} = parseStack(this);
 			const result = parseStackLine(lines[0]);
 			return _.omitBy({
-				// "Object" makes sense from a stack standpoint but it doesn't from an error tracking
-				// standpoint because it is so generic and not helpful. So let's not include the mystery.
-				context: (result.context !== "Object")
-					? result.context
-					: undefined,
-				// note: this will be "<anonymous>" if the function is anonymous. This is useful.
+				context: filterContext(result.context),
 				method: result.method,
 				module: getModulesRelativePath(result.module)
 			}, _.isUndefined);

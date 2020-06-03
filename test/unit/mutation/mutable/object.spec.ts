@@ -55,7 +55,7 @@ describe("mutation.mutable.object", function() {
 
 	describe("ensure", function() {
 		it("should set an object and return the value", function() {
-			const source={a: 1}
+			const source={a: 1};
 			const result=mutable.object.ensure(source, "b", 2);
 			expect(result).toEqual({
 				a: 1,

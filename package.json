@@ -39,7 +39,7 @@
         "lint": "npm run lint:src && npm run lint:res",
         "lint:fix": "npm run lint:src -- --fix && npm run lint:res -- --fix",
         "lint:res": "tslint --config tslint-res.json \"src/**/*.json\" \"test/**/*.json\" ",
-        "lint:src": "tslint --config tslint-src.json \"src/**/*.ts\" \"test/**/*.ts\" ",
+        "lint:src": "tslint --config tslint.json \"src/**/*.ts\" \"test/**/*.ts\" ",
         "prepublishOnly": "npm run rebuild && npm run test",
         "rebuild": "rm -rf ./dist && npm run build",
         "test": "npm run test:unit",

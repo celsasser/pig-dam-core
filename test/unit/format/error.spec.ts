@@ -38,9 +38,8 @@ describe("format.error", function() {
 				message: "message",
 				method: "method"
 			});
-			expect(errorToString(error, {
-				source: true
-			})).toEqual("./test/unit/format/error.spec.ts::DummyClass.method(): message");
+			expect(errorToString(error))
+				.toEqual("./test/unit/format/error.spec.ts::DummyClass.method(): message");
 		});
 
 		it("should include method if included and requested", function() {
@@ -48,9 +47,8 @@ describe("format.error", function() {
 				message: "message",
 				method: "method"
 			});
-			expect(errorToString(error, {
-				source: true
-			})).toEqual("./test/unit/format/error.spec.ts::method(): message");
+			expect(errorToString(error))
+				.toEqual("./test/unit/format/error.spec.ts::method(): message");
 		});
 
 		it("should properly format nested errors", function() {

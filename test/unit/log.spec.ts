@@ -9,7 +9,7 @@ import {LogConsole, Severity} from "../../src";
 describe("log.LogBase", function() {
 	const defaults = {
 		DATE: new Date("2020-01-01T00:00:00.000Z")
-	}
+	};
 
 	beforeEach(function() {
 		global.console.debug = jest.fn();

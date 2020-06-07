@@ -53,7 +53,7 @@ describe("mutation.immutable.object", function() {
 		it("should make a deep copy and call down to mutable.object.scrub", function() {
 			const source = Object.freeze({
 				defined: "defined",
-				undefined: undefined
+				undefined
 			});
 			const result = immutable.object.scrub(source);
 			expect(result).toEqual({
@@ -68,6 +68,7 @@ describe("mutation.immutable.object", function() {
 		});
 
 		it("should sort and return an object's properties", function() {
+			// tslint:disable: object-literal-sort-keys
 			const source = {
 				b1: {
 					b2: "b2",

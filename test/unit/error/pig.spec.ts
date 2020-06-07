@@ -61,21 +61,6 @@ describe("error.pig", function() {
 					});
 			});
 
-			it("make properly derive missing 'details' error", function() {
-				const instance = new PigError({
-					error: new Error("details"),
-					message: "message"
-				});
-				expect(errorToPOJO(instance))
-					.toEqual({
-						details: "details",
-						error: new Error("details"),
-						message: "message",
-						method: "<anonymous>",
-						module: "./test/unit/error/pig.spec.ts"
-					});
-			});
-
 			it("make properly derive missing 'details' status", function() {
 				const instance = new PigError({
 					message: "message",

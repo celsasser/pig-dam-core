@@ -18,11 +18,11 @@ export interface ArrayInsertLocation<T> {
 	/**
 	 * Insert at this index
 	 */
-	index?: number,
+	index?: number;
 	/**
 	 * Predicate forwarded to lodash
 	 */
-	predicate?: ListIterateeCustom<T, boolean>
+	predicate?: ListIterateeCustom<T, boolean>;
 }
 
 
@@ -30,13 +30,13 @@ export interface ArraySearchCriteria<T> {
 	/**
 	 * Element to search for
 	 */
-	element?: any,
+	element?: any;
 	/**
 	 * Odd case where index is known. Lets our API remain versatile
 	 */
-	index?: number,
+	index?: number;
 	/**
 	 * Predicate forwarded to lodash
 	 */
-	predicate?: ListIterateeCustom<T, boolean>
+	predicate?: ListIterateeCustom<T, boolean>;
 }

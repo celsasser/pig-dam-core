@@ -12,7 +12,6 @@ import {PigError} from "./pig";
  * BUT if they are PigErrors and they were created with "child" errors then we can
  * recreate the scene of the crime.
  * Builds the sequence in the order of time - from the inside out.
- * @param {Error} error
  */
 export function getErrorThrowSequence(error: Error): Error[] {
 	if(error instanceof PigError && error.error!==undefined) {
@@ -20,4 +19,11 @@ export function getErrorThrowSequence(error: Error): Error[] {
 			.concat(error);
 	}
 	return [error];
+}
+
+/**
+ * reverses `getErrorThrowSequence`
+ */
+export function getReverseErrorThrowSequence(error: Error): Error[] {
+	return getErrorThrowSequence(error).reverse();
 }

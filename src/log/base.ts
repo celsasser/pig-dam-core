@@ -6,6 +6,7 @@
  */
 
 import * as _ from "lodash";
+import {PigError} from "../error";
 import {errorToFormatDetails} from "../format";
 import {immutable} from "../mutation";
 import {LogMessage, Severity, StackDescription, testSeverity} from "../types";
@@ -14,7 +15,9 @@ import {LogMessage, Severity, StackDescription, testSeverity} from "../types";
 /**
  * This is only a base class implementation. The finer details of how logging is implemented will differ per
  * platform. The idea is that this class encapsulates the broad strokes. There will be override points and
- * they will clearly be labelled
+ * they will clearly be labelled. A few notes:
+ * - when messages are errors we will attempt to extract useful logging information from them such as
+ *   message, stack and metadata
  */
 export abstract class LogBase {
 	public readonly applicationId: string;
@@ -153,6 +156,11 @@ export abstract class LogBase {
 					details: true,
 					stack: true
 				});
+				if(message instanceof PigError) {
+					if(message.metadata) {
+						metadata = Object.assign({}, message.metadata, metadata);
+					}
+				}
 				message = details.message;
 				stack = stack || details.stack;
 			}

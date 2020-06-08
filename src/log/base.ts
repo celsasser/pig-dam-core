@@ -6,8 +6,9 @@
  */
 
 import * as _ from "lodash";
+import {errorToFormatDetails} from "../format";
 import {immutable} from "../mutation";
-import {LogMessage, Severity, testSeverity} from "../types";
+import {LogMessage, Severity, StackDescription, testSeverity} from "../types";
 
 
 /**
@@ -39,101 +40,121 @@ export abstract class LogBase {
 	}
 
 	/********************* Public Interface *********************/
-	public debug(message: LogMessage, {metadata, moduleId, traceId}: {
+	public debug(message: LogMessage, {metadata, moduleId, stack, traceId}: {
 		metadata?: {[index: string]: any},
 		moduleId: string,
+		stack?: StackDescription,
 		traceId?: string
 	}) {
 		this._processEntry(message, {
 			metadata,
 			moduleId,
 			severity: Severity.DEBUG,
+			stack,
 			traceId
 		});
 	}
 
-	public error(message: LogMessage, {metadata, moduleId, traceId}: {
+	public error(message: LogMessage, {metadata, moduleId, stack, traceId}: {
 		metadata?: {[index: string]: any},
 		moduleId: string,
+		stack?: StackDescription,
 		traceId?: string
 	}) {
 		this._processEntry(message, {
 			metadata,
 			moduleId,
 			severity: Severity.ERROR,
+			stack,
 			traceId
 		});
 	}
 
-	public fatal(message: LogMessage, {metadata, moduleId, traceId}: {
+	public fatal(message: LogMessage, {metadata, moduleId, stack, traceId}: {
 		metadata?: {[index: string]: any},
 		moduleId: string,
+		stack?: StackDescription,
 		traceId?: string
 	}) {
 		this._processEntry(message, {
 			metadata,
 			moduleId,
 			severity: Severity.FATAL,
+			stack,
 			traceId
 		});
 	}
 
-	public info(message: LogMessage, {metadata, moduleId, traceId}: {
+	public info(message: LogMessage, {metadata, moduleId, stack, traceId}: {
 		metadata?: {[index: string]: any},
 		moduleId: string,
+		stack?: StackDescription,
 		traceId?: string
 	}) {
 		this._processEntry(message, {
 			metadata,
 			moduleId,
 			severity: Severity.INFO,
+			stack,
 			traceId
 		});
 	}
 
-	public warn(message: LogMessage, {metadata, moduleId, traceId}: {
+	public warn(message: LogMessage, {metadata, moduleId, stack, traceId}: {
 		metadata?: {[index: string]: any},
 		moduleId: string,
+		stack?: StackDescription,
 		traceId?: string
 	}) {
 		this._processEntry(message, {
 			metadata,
 			moduleId,
 			severity: Severity.WARN,
+			stack,
 			traceId
 		});
 	}
 
-	/********************* Protected Interface *********************/
+	/**********************
+	 * Protected Interface
+	 *********************/
 	/**
-	 * Derived classes should implement this method
+	 * This is where the rubber meets the road. Derived classes should hook this guy up
+	 * to wherever the output needs to go.
 	 */
 	protected abstract _logEntry(message: string, severity: Severity, metadata: {[index: string]: any}): void;
 
 
-	/********************* Private Interface *********************/
+	/*********************
+	 * Private Interface
+	 ********************/
 	/**
-	 * @param {string|function():string} message
-	 * @param {Object} metadata
-	 * @param {string} moduleId
-	 * @param {Severity} severity
-	 * @param {string|undefined} traceId
+	 * Processes the message and forwards it to `_logEntry`
 	 * @private
 	 */
 	private _processEntry(message: LogMessage, {
 		metadata,
 		moduleId,
 		severity,
+		stack,
 		traceId
 	}: {
 		metadata?: {[index: string]: any},
 		moduleId: string,
 		severity: Severity,
+		stack?: StackDescription,
 		traceId?: string
 	}) {
 		if(testSeverity(severity, this.threshold)) {
 			if(typeof message === "function") {
 				message = message();
+			} else if(message instanceof Error) {
+				const details = errorToFormatDetails(message, {
+					details: true,
+					stack: true
+				});
+				message = details.message;
+				stack = stack || details.stack;
 			}
 			this._logEntry(message, severity, _.omitBy({
 				applicationId: this.applicationId,
@@ -143,6 +164,7 @@ export abstract class LogBase {
 					: metadata,
 				moduleId,
 				severity,
+				stack,
 				timestamp: Date.now(),
 				traceId
 			}, _.isUndefined));

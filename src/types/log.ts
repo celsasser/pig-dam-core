@@ -4,5 +4,5 @@
  * @license MIT (see project's LICENSE file)
  */
 
-export type LogMessage = string|(() => string);
-
+export type LogMessage = string|(() => string)|Error;
+export type StackDescription = string|string[];

@@ -6,9 +6,37 @@
 
 
 import {PigError} from "../../../src/error";
-import {errorToString} from "../../../src/format";
+import {
+	errorToDiagnosticString,
+	errorToFriendlyString,
+	errorToString
+} from "../../../src/format";
 
 describe("format.error", function() {
+	describe("errorToDiagnosticString", function() {
+		it("should include both details and a stack", function() {
+			const error = new PigError({
+				details: "details",
+				message: "message"
+			});
+			error.stack = "stack";
+			expect(errorToDiagnosticString(error))
+				.toEqual("./test/unit/format/error.spec.ts::<anonymous>(): message - details\n"
+				+ "stack");
+		});
+	});
+
+	describe("errorToFriendlyString", function() {
+		it("should only include the message", function() {
+			const error = new PigError({
+				details: "details",
+				message: "message"
+			});
+			expect(errorToFriendlyString(error))
+				.toEqual("message");
+		});
+	});
+
 	describe("errorToString", function() {
 		/**
 		 * A dummy context for testing

@@ -17,7 +17,7 @@ import {indentText} from "./text";
  */
 export function errorToString(error: PigError|Error|string, {
 	details = true,
-	stack = false
+	stack = true
 }: {
 	details?: boolean,
 	stack?: boolean
@@ -47,6 +47,18 @@ export function errorToString(error: PigError|Error|string, {
 		return result;
 	}
 }
+
+/**
+ * Gets text with `details` and a `stack`
+ */
+export const errorToDiagnosticString: (error: PigError|Error|string) => string = errorToString;
+/**
+ * Gets text with error message only
+ */
+export const errorToFriendlyString: (error: PigError|Error|string) => string = _.partialRight(errorToString, {
+	details: false,
+	stack: false
+});
 
 /**
  * Examines the data in the error and does his best to put together a meaningful line[s] of text

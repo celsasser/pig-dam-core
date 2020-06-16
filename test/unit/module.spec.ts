@@ -4,12 +4,29 @@
  * @license MIT (see project's LICENSE file)
  */
 
+import {resolve as resolvePath} from "path";
 import {
-	resolve as resolvePath
-} from "path";
-import {findModuleRoot, getModulesRelativePath} from "../../src";
+	findModuleRoot,
+	getModulesApplicationPackage,
+	getModulesApplicationRoot,
+	getModulesRelativePath
+} from "../../src";
 
 describe("module", function() {
+	describe("getModulesApplicationPackage", function() {
+		it("should find this module's package.json", function() {
+			const result = getModulesApplicationPackage();
+			expect(result).toEqual(require("../../package.json"));
+		});
+	});
+
+	describe("getModulesApplicationRoot", function() {
+		it("should probably always return undefined when not in an application (but its not)", function() {
+			expect(getModulesApplicationRoot.bind(null))
+				.not.toThrow();
+		});
+	});
+
 	describe("getModulesRelativePath", function() {
 		it("should properly find the relative path of this module", function() {
 			const relative = getModulesRelativePath(__filename);

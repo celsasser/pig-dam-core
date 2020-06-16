@@ -7,47 +7,83 @@
 import * as _ from "lodash";
 import {getReverseErrorThrowSequence, PigError} from "../error";
 import {groomStack} from "../stack";
+import {FormatErrorProperties} from "../types/format";
 import {indentText} from "./text";
 
 /**
- * Gets text suitable for different purposes.
- * @param error
- * @param details - whether to dig the details out of the error or not?
- * @param stack - whether to include stack or not if <param>message</param> is an Error
+ * Gets error as both `message` and optionally `stack`. By default includes details and stack.
  */
-export function errorToString(error: PigError|Error|string, {
-	details = true,
-	stack = false
-}: {
-	details?: boolean,
-	stack?: boolean
-} = {}): string {
+export function errorToFormatDetails(error: PigError|Error|string, properties: FormatErrorProperties = {
+	details: true,
+	stack: true
+}): {
+	message: string,
+	stack?: string
+} {
 	if(typeof (error) === "string") {
-		return error;
+		return {
+			message: error
+		};
 	} else {
-		let result = "";
+		let message = "";
 		const reverseThrowSequence = getReverseErrorThrowSequence(error);
 
-		if(details === false) {
-			result = `${result}${error.message}`;
+		if(properties.details === false) {
+			message = `${message}${error.message}`;
 		} else {
 			reverseThrowSequence.forEach((error, index) => {
 				const prefix = (index > 0)
 					? `\n[${_.times(index + 1, () => "error").join(" -> ")}] `
 					: ``;
-				result += `${indentText(prefix, index)}${getErrorDetails(error, index)}`;
+				message += `${indentText(prefix, index)}${getErrorDetails(error, index)}`;
 			});
 		}
 
-		if(stack) {
-			// we are going to report the stack of the first error that was thrown - the origin
-			const firstErrorThrown = _.last(reverseThrowSequence) as Error;
-			result = `${result}\n${groomStack(firstErrorThrown)}`;
+		if(properties.stack) {
+			return {
+				message,
+				// we are going to report the stack of the first error that was thrown - the origin
+				stack: groomStack(_.last(reverseThrowSequence) as Error)
+			};
+		} else {
+			return {
+				message
+			};
 		}
-		return result;
 	}
 }
 
+
+/**
+ * Gets error as text
+ */
+export function errorToString(error: PigError|Error|string, properties: FormatErrorProperties = {
+	details: true,
+	stack: true
+}): string {
+	const details = errorToFormatDetails(error, properties);
+	if(details.stack) {
+		return `${details.message}\n${details.stack}`;
+	} else {
+		return details.message;
+	}
+}
+
+/**
+ * Gets text with `details` and a `stack`
+ */
+export const errorToDiagnosticString: (error: PigError|Error|string) => string = errorToString;
+/**
+ * Gets text with error message only
+ */
+export const errorToFriendlyString: (error: PigError|Error|string) => string = _.partialRight(errorToString, {
+	details: false,
+	stack: false
+});
+
+/********************
+ * Private Interface
+ ********************/
 /**
  * Examines the data in the error and does his best to put together a meaningful line[s] of text
  * @param error - error we are formatting

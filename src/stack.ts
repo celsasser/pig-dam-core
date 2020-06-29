@@ -27,7 +27,7 @@ export function getStack({
  * Gets the stack, parses it via `parseStack` and refines it as requested
  * @param errorOrStack - either is the stack or is an error from which we will pull the stack
  * @param popCount - number of lines to pop off the top
- * @param maxLines - max number of stack lines to include (stacks can get very long and noisey
+ * @param maxLines - max number of stack lines to include (stacks can get very long and noisy
  * And returns him back to you so you can hug and kiss him and call him?
  */
 export function groomStack(errorOrStack: Error|string, {

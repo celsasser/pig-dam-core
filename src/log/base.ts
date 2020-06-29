@@ -7,7 +7,7 @@
 
 import * as _ from "lodash";
 import {PigError} from "../error";
-import {errorToFormatDetails} from "../format";
+import {errorToFormatModel} from "../format";
 import {immutable} from "../mutation";
 import {LogMessage, Severity, StackDescription, testSeverity} from "../types";
 
@@ -152,17 +152,18 @@ export abstract class LogBase {
 			if(typeof message === "function") {
 				message = message();
 			} else if(message instanceof Error) {
-				const details = errorToFormatDetails(message, {
-					details: true,
-					stack: true
-				});
-				if(message instanceof PigError) {
-					if(message.metadata) {
-						metadata = Object.assign({}, message.metadata, metadata);
-					}
-				}
-				message = details.message;
-				stack = stack || details.stack;
+				// The error may not be a PigError be we don't care.
+				// We cast it so that TS doesn't bug us about referencing PigError properties.
+				const error: PigError = message as PigError;
+				const errorModel = errorToFormatModel(error);
+				message = errorModel.message;
+				stack = stack || errorModel.stack;
+				// We are going to put the whole error model into metadata vs. formatting the error.
+				// Let's see how this works out
+				metadata = Object.assign({
+					// we are putting the stack in the root. Let's not replicate it.
+					error: _.omit(errorModel, ["stack"])
+				}, error.metadata, metadata);
 			}
 			this._logEntry(message, severity, _.omitBy({
 				applicationId: this.applicationId,

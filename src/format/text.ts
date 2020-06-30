@@ -11,7 +11,10 @@
  * @param indent - the text to use for each `depth`
  * @param skip - how many lines to skip before we start indenting
  */
-export function indentText(text: string, depth: number, {indent = "   ", skip = 0}: {
+export function indentText(text: string, depth: number, {
+	indent = "   ",
+	skip = 0
+}: {
 	indent?: string,
 	skip?: number,
 } = {}): string {

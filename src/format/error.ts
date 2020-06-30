@@ -5,115 +5,60 @@
  */
 
 import * as _ from "lodash";
-import {getReverseErrorThrowSequence, PigError} from "../error";
-import {groomStack} from "../stack";
-import {FormatErrorProperties} from "../types/format";
-import {indentText} from "./text";
+import {PigError} from "../error";
+import {parseStack} from "../stack";
+import {FormatErrorModel} from "../types/format";
 
 /**
- * Gets error as both `message` and optionally `stack`. By default includes details and stack.
+ * What are our error formatting concerns?
+ * - logging? We are going to log the whole error. Formatted messages are a mess in logs
+ * - console? Yes, we will either log the message or we will log the whole error if in diagnostics mode
+ * - responses? Nah, we send back the error or the model.
+ * So, we are going to supply some tools for getting format friendly data. But its up to you to put it together.
  */
-export function errorToFormatDetails(error: PigError|Error|string, properties: FormatErrorProperties = {
-	details: true,
-	stack: true
-}): {
-	message: string,
-	stack?: string
-} {
-	if(typeof (error) === "string") {
-		return {
-			message: error
-		};
-	} else {
-		let message = "";
-		const reverseThrowSequence = getReverseErrorThrowSequence(error);
 
-		if(properties.details === false) {
-			message = `${message}${error.message}`;
-		} else {
-			reverseThrowSequence.forEach((error, index) => {
-				const prefix = (index > 0)
-					? `\n[${_.times(index + 1, () => "error").join(" -> ")}] `
-					: ``;
-				message += `${indentText(prefix, index)}${getErrorDetails(error, index)}`;
-			});
-		}
-
-		if(properties.stack) {
-			return {
-				message,
-				// we are going to report the stack of the first error that was thrown - the origin
-				stack: groomStack(_.last(reverseThrowSequence) as Error)
-			};
-		} else {
-			return {
-				message
-			};
-		}
-	}
+/**
+ * Converts the error into our own representation of an error
+ */
+export function errorToFormatModel(error: Error|PigError): FormatErrorModel {
+	const cast: PigError = error as PigError;
+	return _.omitBy<FormatErrorModel>({
+		// note: we don't want to format details here. We only want to format them if we
+		// are rendering the error as text
+		details: (cast.details !== undefined)
+			? cast.details.trim()
+			: undefined,
+		location: errorToLocation(error),
+		message: error.message,
+		nested: (cast.error !== undefined)
+			? errorToFormatModel(cast.error)
+			: undefined,
+		stack: parseStack(error).lines
+	}, _.isUndefined) as FormatErrorModel;
 }
-
-
-/**
- * Gets error as text
- */
-export function errorToString(error: PigError|Error|string, properties: FormatErrorProperties = {
-	details: true,
-	stack: true
-}): string {
-	const details = errorToFormatDetails(error, properties);
-	if(details.stack) {
-		return `${details.message}\n${details.stack}`;
-	} else {
-		return details.message;
-	}
-}
-
-/**
- * Gets text with `details` and a `stack`
- */
-export const errorToDiagnosticString: (error: PigError|Error|string) => string = errorToString;
-/**
- * Gets text with error message only
- */
-export const errorToFriendlyString: (error: PigError|Error|string) => string = _.partialRight(errorToString, {
-	details: false,
-	stack: false
-});
 
 /********************
  * Private Interface
  ********************/
 /**
- * Examines the data in the error and does his best to put together a meaningful line[s] of text
- * @param error - error we are formatting
- * @param depth - how deeply nested this error is
+ * We will return as much location information as possible: `module::context.method()`
  */
-function getErrorDetails(error: Error|PigError, depth: number = 0): string {
-	let text = "";
-	const message = indentText(error.message, depth, {
-		skip: 1
-	});
-	if("module" in error) {
-		text = `${text}${error.module}::`;
-	}
-	if("context" in error && "method" in error) {
-		text = `${text}${error.context}.${error.method}(): ${message}`;
-	} else if("context" in error) {
-		text = `${text}${error.context}: ${message}`;
-	} else if("method" in error) {
-		text = `${text}${error.method}(): ${message}`;
+function errorToLocation(error: Error|PigError): string| undefined {
+	if(!(error instanceof PigError)) {
+		return undefined;
 	} else {
-		text = `${text}${message}`;
-	}
-	if("details" in error) {
-		const details: string = error.details as string;
-		if(/\n/.test(details)) {
-			text = `${text} - details:\n${indentText(error.details as "string", depth + 1)}`;
-		} else {
-			text = `${text} - ${error.details}`;
+		// we are going to assume that there is more location info if we got the module. Otherwise this guy
+		// is going to look a little weird when formatted
+		let location = (error.module !== undefined)
+			? `${error.module}::`
+			: "";
+		if(error.context !== undefined && error.method !== undefined) {
+			location = `${location}${error.context}.${error.method}()`;
+		} else if(error.context) {
+			location = `${location}${error.context}`;
+		} else if(error.method) {
+			location = `${location}${error.method}()`;
 		}
+		return location;
 	}
-	return text;
 }
-

@@ -27,7 +27,7 @@ export function getStack({
  * Gets the stack, parses it via `parseStack` and refines it as requested
  * @param errorOrStack - either is the stack or is an error from which we will pull the stack
  * @param popCount - number of lines to pop off the top
- * @param maxLines - max number of stack lines to include (stacks can get very long and noisey
+ * @param maxLines - max number of stack lines to include (stacks can get very long and noisy
  * And returns him back to you so you can hug and kiss him and call him?
  */
 export function groomStack(errorOrStack: Error|string, {
@@ -47,22 +47,22 @@ export function groomStack(errorOrStack: Error|string, {
 /**
  * Splits this fellow up into the message and the call history. It removes all formatting (leading
  * and trailing white space).
+ *
+ * Sample stack
+ * "Error Message\n" +
+ * "    at repl:1:7\n" +
+ * "    at Script.runInThisContext (vm.js:120:20)\n" +
+ * "    at REPLServer.defaultEval (repl.js:431:29)\n" +
+ * "    ...";
  */
 export function parseStack(errorOrStack: Error|string): {
 	lines: string[],
 	message: string
 } {
-	/**
-	 * Sample stack
-	 * "Error Message\n" +
-	 * "    at repl:1:7\n" +
-	 * "    at Script.runInThisContext (vm.js:120:20)\n" +
-	 * "    at REPLServer.defaultEval (repl.js:431:29)\n" +
-	 * "    ...";
-	 */
-	const stack: string = (errorOrStack instanceof Error)
-		? errorOrStack.stack as string
-		: errorOrStack;
+	// it appears that not all errors create themselves as instances of Error...
+	const stack: string = (typeof errorOrStack === "string")
+		? errorOrStack
+		: errorOrStack.stack as string;
 	// the reason we don't remove all whitespace around the newline is so that we can retain
 	// message formatting. For example, it may be stringified JSON. We want to keep that whitespace.
 	const split = stack.split(/\n/)

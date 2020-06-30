@@ -4,13 +4,25 @@
  * @license MIT (see project's LICENSE file)
  */
 
-export interface FormatErrorProperties {
+/**
+ * Model we use for formatting errors and share with you our valued customers.
+ */
+export interface FormatErrorModel {
 	/**
-	 * whether to dig the details out of the error or not?
+	 * Details that further describe the message
 	 */
-	details?: boolean;
+	details?: string;
 	/**
-	 * whether to include the stack or not
+	 * Location at which the error was thrown: module:context:method
 	 */
-	stack?: boolean;
+	location?: string;
+	message: string;
+	/**
+	 * Information about nested error
+	 */
+	nested?: FormatErrorModel;
+	/**
+	 * Parsed stack lines
+	 */
+	stack: string[];
 }

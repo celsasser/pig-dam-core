@@ -46,5 +46,5 @@
         "test:unit": "jest ./test/unit"
     },
     "types": "dist/index",
-    "version": "0.0.7"
+    "version": "0.0.8"
 }

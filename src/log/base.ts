@@ -8,7 +8,7 @@
 import * as _ from "lodash";
 import {PigError} from "../error";
 import {immutable} from "../mutation";
-import {LogMessage, Severity, StackDescription, testSeverity} from "../types";
+import {ILog, LogMessage, Severity, StackDescription, testSeverity} from "../types";
 
 
 /**
@@ -18,7 +18,7 @@ import {LogMessage, Severity, StackDescription, testSeverity} from "../types";
  * - when messages are errors we will attempt to extract useful logging information from them such as
  *   message, stack and metadata
  */
-export abstract class LogBase {
+export abstract class LogBase implements ILog {
 	public readonly applicationId: string;
 	public readonly environmentId: string;
 	public readonly sortMetadata: boolean;
